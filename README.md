@@ -21,7 +21,7 @@ git clone https://github.com/jamesalexmsekela/Pulse_v1.git
 
 
 ### Running the Application
-- Instructions on how to run the application locally.
+- 
 
 ## Contributing
 We welcome contributions to Pulse v1! Please read through our contributing guidelines to understand the process for submitting pull requests to us.
@@ -33,12 +33,10 @@ For the versions available, see the [tags on this repository](https://github.com
 - **James Msekela** - *Initial work*
 
 ## License
-This project is licensed under the XYZ License - see the [LICENSE.md](LICENSE) file for details.
+This project is not yet licensed.
 
 ## Acknowledgments
-- Hat tip to anyone whose code was used
-- Inspiration
-- etc.
+- 
 
 ## Contact Information
 For any inquiries, please reach out to [email](mailto:jamesmsekela@gmail.com).
