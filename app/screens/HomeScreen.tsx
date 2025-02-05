@@ -46,16 +46,12 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             let location = await Location.getCurrentPositionAsync({});
             setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
 
-            console.log("User's Location:", location.coords.latitude, location.coords.longitude);
-        
             // Simulating fetching location-based events
             const nearbyEvents = mockEvents.filter(event => (
                 Math.abs(event.location.latitude - location.coords.latitude) < 1 &&
                 Math.abs(event.location.longitude - location.coords.longitude) < 1
             ));
 
-            console.log("Filtered Events:", nearbyEvents); // ✅ Debugging: Check if events are found
-        
             setEvents(nearbyEvents);
             setLoading(false);
         })();
