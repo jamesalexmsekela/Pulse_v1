@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, Button, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native';
-import { RouteProp } from '@react-navigation/native';
 import { globalStyles } from '../styles/globalStyles';
 
 type RootStackParamList = {
@@ -14,7 +13,6 @@ type RootStackParamList = {
 
 type CreatePulseProps = {
     navigation: StackNavigationProp<RootStackParamList, 'CreatePulse'>;
-    route: RouteProp<RootStackParamList, 'CreatePulse'>;
 };
 
 export default function CreatePulse({ navigation }: CreatePulseProps) {

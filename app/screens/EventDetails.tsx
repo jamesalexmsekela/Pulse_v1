@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, TouchableOpacity} from 'react-native';
+import { Text, TouchableOpacity} from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native';
-import { RouteProp } from '@react-navigation/native';
 import { globalStyles } from '../styles/globalStyles';
 
 type RootStackParamList = {
@@ -14,7 +13,7 @@ type RootStackParamList = {
 
 type EventDetailsProps = {
     navigation: StackNavigationProp<RootStackParamList, 'EventDetails'>;
-    route: RouteProp<RootStackParamList, 'EventDetails'>;
+    // route: RouteProp<RootStackParamList, 'EventDetails'>;
 };
 
 export default function EventDetails({ navigation }: EventDetailsProps) {

@@ -1,9 +1,7 @@
 import React from 'react';
-import { View, Text, Button, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Text, SafeAreaView, TouchableOpacity } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RouteProp } from '@react-navigation/native';
 import { globalStyles } from '../styles/globalStyles'; // Import global styles
-
 
 type RootStackParamList = {
     Home: undefined;
@@ -14,7 +12,6 @@ type RootStackParamList = {
 
 type HomeScreenProps = {
     navigation: StackNavigationProp<RootStackParamList, 'Home'>;
-    route: RouteProp<RootStackParamList, 'Home'>;
 };
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
