@@ -1,27 +1,29 @@
-// app/screens/EventDetails.tsx
 import React from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, Text, TouchableOpacity} from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SafeAreaView } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
+import { globalStyles } from '../styles/globalStyles';
 
 type RootStackParamList = {
-  Home: undefined;
-  CreatePulse: undefined;
-  EventDetails: undefined;
-  Profile: undefined;
+    Home: undefined;
+    CreatePulse: undefined;
+    EventDetails: undefined;
+    Profile: undefined;
 };
 
-type ScreenProps = {
-  navigation: StackNavigationProp<RootStackParamList>;
+type EventDetailsProps = {
+    navigation: StackNavigationProp<RootStackParamList, 'EventDetails'>;
+    route: RouteProp<RootStackParamList, 'EventDetails'>;
 };
 
-export default function EventDetails({ navigation }: ScreenProps) {
-  return (
-    <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Event Details 🗓️</Text>
-            <Button title="Back to Home" onPress={() => navigation.goBack()} />
-        </View>
-    </SafeAreaView>
-  );
+export default function EventDetails({ navigation }: EventDetailsProps) {
+    return (
+        <SafeAreaView style={globalStyles.container}>
+            <Text style={globalStyles.header}>Event Details 🗓️</Text>
+            <TouchableOpacity style={globalStyles.button} onPress={() => navigation.goBack()}>
+                <Text style={globalStyles.buttonText}>Back to Home</Text>
+            </TouchableOpacity>
+        </SafeAreaView>
+    );
 }

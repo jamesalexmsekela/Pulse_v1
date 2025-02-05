@@ -1,4 +1,3 @@
-// app/navigation/AppNavigator.tsx
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { NavigationContainer } from '@react-navigation/native';
@@ -8,7 +7,14 @@ import EventDetails from '../screens/EventDetails';
 import Profile from '../screens/Profile';
 import { Ionicons } from '@expo/vector-icons';
 
-const Tab = createBottomTabNavigator();
+type RootStackParamList = {
+  Home: undefined;
+  CreatePulse: undefined;
+  EventDetails: undefined;
+  Profile: undefined;
+};
+
+const Tab = createBottomTabNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
   return (
@@ -16,7 +22,6 @@ export default function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           tabBarIcon: ({ color, size }) => {
-            // Assign a default value to avoid "undefined" errors
             let iconName: keyof typeof Ionicons.glyphMap = 'home';
 
             if (route.name === 'Home') {
@@ -43,4 +48,3 @@ export default function AppNavigator() {
     </NavigationContainer>
   );
 }
-
