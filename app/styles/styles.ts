@@ -2,8 +2,9 @@ export const styles = {
     colors: {
       primary: '#9b59b6', // Light Purple
       secondary: '#FF9500', // Orange
-      background: '#f8f9fa', // Light Gray Background
+      background: '#F5F5FF',  // Light purple background
       text: '#1c1c1e', // Dark Gray
+      headerText: '#333',
       buttonText: '#ffffff', // White
       danger: '#FF3B30', // Red
     },
