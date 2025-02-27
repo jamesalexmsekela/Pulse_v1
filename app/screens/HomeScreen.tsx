@@ -24,9 +24,9 @@ type Event = {
   };
   
   const mockEvents: Event[] = [
-    { id: '1', name: 'Music Festival', location: { latitude: 41.8810, longitude: -87.6460 }, date: '2025-02-20', image: 'https://via.placeholder.com/150' },
-    { id: '2', name: 'Tech Conference', location: { latitude: 41.7128, longitude: -88.0060 }, date: '2025-02-25', image: 'https://via.placeholder.com/150' },
-    { id: '3', name: 'Art Exhibition', location: { latitude: 42.7138, longitude: -88.0065 }, date: '2025-02-27', image: 'https://via.placeholder.com/150' },
+    { id: '1', name: 'Music Festival', location: { latitude: 40.2610, longitude: -76.8460 }, date: '2025-02-20', image: 'https://via.placeholder.com/150' },
+    { id: '2', name: 'Tech Conference', location: { latitude: 40.7128, longitude: -76.0060 }, date: '2025-02-25', image: 'https://via.placeholder.com/150' },
+    { id: '3', name: 'Art Exhibition', location: { latitude: 40.7138, longitude: -76.0065 }, date: '2025-02-27', image: 'https://via.placeholder.com/150' },
   ];
 
 export default function HomeScreen({ navigation }: HomeScreenProps) {
@@ -46,12 +46,16 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
             let location = await Location.getCurrentPositionAsync({});
             setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
 
+            console.log("User's Location:", location.coords.latitude, location.coords.longitude);
+        
             // Simulating fetching location-based events
             const nearbyEvents = mockEvents.filter(event => (
                 Math.abs(event.location.latitude - location.coords.latitude) < 1 &&
                 Math.abs(event.location.longitude - location.coords.longitude) < 1
             ));
 
+            console.log("Filtered Events:", nearbyEvents); // ✅ Debugging: Check if events are found
+        
             setEvents(nearbyEvents);
             setLoading(false);
         })();
