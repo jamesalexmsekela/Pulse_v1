@@ -54,4 +54,33 @@ export const globalStyles = StyleSheet.create({
     fontSize: 14,
     color: 'gray',
   },
+  label: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    alignSelf: 'flex-start',
+    marginBottom: 5,
+    marginLeft: 10,
+  },
+  input: {
+    width: '90%',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    marginBottom: 15,
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  categoryButton: {
+    backgroundColor: '#E5E5E5',
+    padding: 10,
+    borderRadius: 5,
+    margin: 5,
+  },
+  categorySelected: {
+    backgroundColor: '#9b59b6',
+  },
 });
