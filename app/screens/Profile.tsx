@@ -64,6 +64,7 @@ export default function Profile() {
       <TextInput
         style={globalStyles.input}
         placeholder="Enter your name"
+        placeholderTextColor="gray"
         value={name}
         onChangeText={setName}
       />
@@ -72,6 +73,7 @@ export default function Profile() {
       <TextInput
         style={globalStyles.input}
         placeholder="Enter your email"
+        placeholderTextColor="gray"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"

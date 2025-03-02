@@ -15,7 +15,7 @@ import { EventContext, Event } from "../context/EventContext";
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
-  EventDetails: undefined;
+  EventDetails: { event: Event };
   Profile: undefined;
 };
 
@@ -60,24 +60,28 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
       <TextInput
         style={globalStyles.input}
         placeholder="Event Name"
+        placeholderTextColor="gray"
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={globalStyles.input}
         placeholder="Category (e.g., Music, Tech)"
+        placeholderTextColor="gray"
         value={category}
         onChangeText={setCategory}
       />
       <TextInput
         style={globalStyles.input}
         placeholder="Date (YYYY-MM-DD)"
+        placeholderTextColor="gray"
         value={date}
         onChangeText={setDate}
       />
       <TextInput
         style={[globalStyles.input, { height: 80 }]}
         placeholder="Description"
+        placeholderTextColor="gray"
         value={description}
         onChangeText={setDescription}
         multiline
