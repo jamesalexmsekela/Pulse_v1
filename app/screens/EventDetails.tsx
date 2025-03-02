@@ -14,7 +14,7 @@ import { EventContext, Event } from "../context/EventContext";
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
-  EventDetails: { event: Event };
+  EventDetails: { eventId: string };
   Profile: undefined;
 };
 
@@ -30,9 +30,25 @@ export default function EventDetails({
   navigation: EventDetailsNavigationProp;
 }) {
   const route = useRoute<EventDetailsRouteProp>();
-  const { event } = route.params; // The event object passed from HomeScreen
+  const { eventId } = route.params;
+  const { events, toggleRSVP } = useContext(EventContext)!;
 
-  const { toggleRSVP } = useContext(EventContext)!;
+  // Look up the latest event data from the context using the event ID
+  const event = events.find((e) => e.id === eventId);
+
+  if (!event) {
+    return (
+      <SafeAreaView style={globalStyles.container}>
+        <Text style={globalStyles.header}>Event not found.</Text>
+        <TouchableOpacity
+          style={[globalStyles.button, { marginTop: 10 }]}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={globalStyles.buttonText}>Back to Home</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   const handleRSVP = () => {
     toggleRSVP(event.id);
@@ -45,6 +61,10 @@ export default function EventDetails({
       <Text style={globalStyles.eventDate}>{event.date}</Text>
       <Text style={{ margin: 10 }}>
         {event.description || "No description provided."}
+      </Text>
+      <Text style={{ margin: 10 }}>
+        RSVPs: {event.rsvpCount}{" "}
+        {event.maxAttendees ? `/ ${event.maxAttendees}` : ""}
       </Text>
       <TouchableOpacity style={globalStyles.button} onPress={handleRSVP}>
         <Text style={globalStyles.buttonText}>

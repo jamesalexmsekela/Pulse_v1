@@ -20,7 +20,7 @@ import { eventBus } from "../utils/EventBus";
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
-  EventDetails: { event: Event };
+  EventDetails: { eventId: string };
   Profile: undefined;
 };
 
@@ -152,7 +152,9 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={globalStyles.card}
-            onPress={() => navigation.navigate("EventDetails", { event: item })}
+            onPress={() =>
+              navigation.navigate("EventDetails", { eventId: item.id })
+            }
           >
             <Image
               source={{ uri: item.image }}

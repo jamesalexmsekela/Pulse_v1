@@ -14,7 +14,7 @@ import Profile from "../screens/Profile";
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
-  EventDetails: { event: Event };
+  EventDetails: { eventId: string };
   Profile: undefined;
 };
 

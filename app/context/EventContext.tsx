@@ -9,7 +9,9 @@ export type Event = {
   date: string;
   image: string;
   description?: string;
-  rsvped?: boolean;
+  rsvped?: boolean; // Represents whether the current user has RSVPed (for toggle purposes)
+  rsvpCount: number;
+  maxAttendees?: number;
 };
 
 type EventContextType = {
@@ -23,7 +25,7 @@ export const EventContext = createContext<EventContextType | undefined>(
 );
 
 export const EventProvider = ({ children }: { children: ReactNode }) => {
-  // Seed with mock events initially
+  // Seed with mock events
   const [events, setEvents] = useState<Event[]>([
     {
       id: "1",
@@ -31,9 +33,12 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       category: "Music",
       location: { latitude: 41.861, longitude: -87.846 },
       date: "2025-02-20",
-      image: "https://via.placeholder.com/150",
+      image:
+        "https://unsplash.com/photos/people-raising-their-hands-on-concert-Qnlp3FCO2vc",
       description: "Join us for a day of live music and fun!",
       rsvped: false,
+      rsvpCount: 0,
+      maxAttendees: 100, // Example limit
     },
     {
       id: "2",
@@ -44,6 +49,7 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       image: "https://via.placeholder.com/150",
       description: "The latest in tech innovations.",
       rsvped: false,
+      rsvpCount: 0,
     },
     {
       id: "3",
@@ -54,6 +60,7 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       image: "https://via.placeholder.com/150",
       description: "Explore stunning art pieces.",
       rsvped: false,
+      rsvpCount: 0,
     },
     {
       id: "4",
@@ -64,19 +71,36 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
       image: "https://via.placeholder.com/150",
       description: "Competitive soccer action!",
       rsvped: false,
+      rsvpCount: 0,
+      maxAttendees: 16, // Example limit
     },
   ]);
 
-  const addEvent = (newEvent: Event) => {
-    setEvents((prev) => [...prev, newEvent]);
-  };
-
+  // Update toggleRSVP to adjust rsvpCount accordingly
   const toggleRSVP = (eventId: string) => {
     setEvents((prev) =>
-      prev.map((event) =>
-        event.id === eventId ? { ...event, rsvped: !event.rsvped } : event
-      )
+      prev.map((event) => {
+        if (event.id === eventId) {
+          // If already RSVPed, cancel RSVP and decrement count
+          if (event.rsvped) {
+            return { ...event, rsvped: false, rsvpCount: event.rsvpCount - 1 };
+          } else {
+            // If maxAttendees is set and count has reached it, do not allow RSVP
+            if (event.maxAttendees && event.rsvpCount >= event.maxAttendees) {
+              // Optionally, alert the user here
+              console.log("Maximum number of attendees reached.");
+              return event;
+            }
+            return { ...event, rsvped: true, rsvpCount: event.rsvpCount + 1 };
+          }
+        }
+        return event;
+      })
     );
+  };
+
+  const addEvent = (newEvent: Event) => {
+    setEvents((prev) => [...prev, newEvent]);
   };
 
   return (

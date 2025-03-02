@@ -1,4 +1,3 @@
-// app/screens/CreatePulse.tsx
 import React, { useState, useContext } from "react";
 import {
   View,
@@ -15,7 +14,7 @@ import { EventContext, Event } from "../context/EventContext";
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
-  EventDetails: { event: Event };
+  EventDetails: { eventId: string };
   Profile: undefined;
 };
 
@@ -29,13 +28,18 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
-  // Using fixed location and image for now
+  const [maxAttendees, setMaxAttendees] = useState("");
+
+  // For simplicity, using fixed location and image for now
   const fixedLocation = { latitude: 41.85, longitude: -87.65 };
   const fixedImage = "https://via.placeholder.com/150";
 
   const handleCreateEvent = () => {
     if (!name || !category || !date) {
-      Alert.alert("Error", "Please fill in all required fields.");
+      Alert.alert(
+        "Error",
+        "Please fill in all required fields (Name, Category, Date)."
+      );
       return;
     }
     const newEvent: Event = {
@@ -47,6 +51,8 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
       description,
       location: fixedLocation,
       rsvped: false,
+      rsvpCount: 0,
+      maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined, // Set limit if provided
     };
     addEvent(newEvent);
     Alert.alert("Success", "Event created successfully!");
@@ -85,6 +91,14 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         value={description}
         onChangeText={setDescription}
         multiline
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Max Attendees (optional)"
+        placeholderTextColor="gray"
+        value={maxAttendees}
+        onChangeText={setMaxAttendees}
+        keyboardType="numeric"
       />
 
       <TouchableOpacity style={globalStyles.button} onPress={handleCreateEvent}>
