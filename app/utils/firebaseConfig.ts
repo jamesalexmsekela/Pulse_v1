@@ -1,5 +1,7 @@
+// app/utils/firebaseConfig.ts
 import firebase from "firebase/compat/app";
 import "firebase/compat/auth";
+import "firebase/compat/firestore";
 import "firebase/compat/analytics";
 
 // Web app's Firebase configuration
@@ -16,7 +18,7 @@ const firebaseConfig = {
 // Initialize Firebase if not already initialized
 if (!firebase.apps.length) {
     const app = firebase.initializeApp(firebaseConfig);
-    const analytics = firebase.analytics(app);
+    firebase.analytics(app);
   }
 
 export { firebase };

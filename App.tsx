@@ -7,11 +7,14 @@ import { EventProvider } from "./app/context/EventContext";
 import AppNavigator from "./app/navigation/AppNavigator";
 import AuthNavigator from "./app/navigation/AuthNavigator";
 import { NavigationContainer } from "@react-navigation/native";
+import { registerForPushNotificationsAsync } from "./app/utils/notifications";
+import NotificationHandler from "./app/components/NotificationHandler";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Always call hooks unconditionally
   useEffect(() => {
     const unsubscribe = firebase.auth().onAuthStateChanged((usr) => {
       setUser(usr);
@@ -20,19 +23,22 @@ export default function App() {
     return unsubscribe;
   }, []);
 
-  if (loading) {
-    return (
-      <ActivityIndicator
-        size="large"
-        color="purple"
-        style={globalStyles.container}
-      />
-    );
-  }
+  useEffect(() => {
+    registerForPushNotificationsAsync().then((token) => {
+      console.log("Push token:", token);
+    });
+  }, []);
 
   return (
     <NavigationContainer>
-      {user ? (
+      <NotificationHandler />
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color="purple"
+          style={globalStyles.container}
+        />
+      ) : user ? (
         <EventProvider>
           <AppNavigator />
         </EventProvider>

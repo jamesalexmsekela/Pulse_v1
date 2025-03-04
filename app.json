@@ -1,0 +1,40 @@
+{
+    "expo": {
+      "name": "Pulse",
+      "slug": "pulse-v1",
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "icon": "./app/assets/icon.png",
+      "splash": {
+        "image": "./app/assets/splash.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      },
+      "updates": {
+        "fallbackToCacheTimeout": 0
+      },
+      "assetBundlePatterns": [
+        "**/*"
+      ],
+      "ios": {
+        "supportsTablet": true,
+        "bundleIdentifier": "com.jamesmsekela.pulse"
+      },
+      "android": {
+        "adaptiveIcon": {
+          "foregroundImage": "./app/assets/adaptive-icon.png",
+          "backgroundColor": "#FFFFFF"
+        },
+        "package": "com.jamesmsekela.pulse"
+      },
+      "web": {
+        "favicon": "./app/assets/favicon.png"
+      },
+      "notification": {
+        "icon": "./app/assets/notification-icon.png",
+        "color": "#9b59b6",
+        "iosDisplayInForeground": true
+      }
+    }
+  }
+  
