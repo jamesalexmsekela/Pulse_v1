@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
-import { firebase } from "../utils/firebaseConfig";
+import { auth } from "../utils/firebaseConfig";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 type RootStackParamList = {
   Login: undefined;
@@ -28,7 +29,7 @@ export default function Login({ navigation }: LoginScreenProps) {
 
   const handleLogin = async () => {
     try {
-      await firebase.auth().signInWithEmailAndPassword(email, password);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error: any) {
       Alert.alert("Login Error", error.message);
     }

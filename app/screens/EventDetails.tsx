@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -33,10 +33,18 @@ export default function EventDetails({
   const { eventId } = route.params;
   const { events, toggleRSVP } = useContext(EventContext)!;
 
-  // Look up the latest event data from the context using the event ID
-  const event = events.find((e) => e.id === eventId);
+  // Use local state to hold the current event
+  const [currentEvent, setCurrentEvent] = useState<Event | undefined>(() =>
+    events.find((e) => e.id === eventId)
+  );
 
-  if (!event) {
+  // Update local state whenever the global events change
+  useEffect(() => {
+    const updatedEvent = events.find((e) => e.id === eventId);
+    setCurrentEvent(updatedEvent);
+  }, [events, eventId]);
+
+  if (!currentEvent) {
     return (
       <SafeAreaView style={globalStyles.container}>
         <Text style={globalStyles.header}>Event not found.</Text>
@@ -51,24 +59,27 @@ export default function EventDetails({
   }
 
   const handleRSVP = () => {
-    toggleRSVP(event.id);
+    toggleRSVP(currentEvent.id);
   };
 
   return (
     <SafeAreaView style={globalStyles.container}>
-      <Text style={globalStyles.header}>{event.name}</Text>
-      <Image source={{ uri: event.image }} style={globalStyles.eventImage} />
-      <Text style={globalStyles.eventDate}>{event.date}</Text>
+      <Text style={globalStyles.header}>{currentEvent.name}</Text>
+      <Image
+        source={{ uri: currentEvent.image }}
+        style={globalStyles.eventImage}
+      />
+      <Text style={globalStyles.eventDate}>{currentEvent.date}</Text>
       <Text style={{ margin: 10 }}>
-        {event.description || "No description provided."}
+        {currentEvent.description || "No description provided."}
       </Text>
       <Text style={{ margin: 10 }}>
-        RSVPs: {event.rsvpCount}{" "}
-        {event.maxAttendees ? `/ ${event.maxAttendees}` : ""}
+        RSVPs: {currentEvent.rsvpCount}{" "}
+        {currentEvent.maxAttendees ? `/ ${currentEvent.maxAttendees}` : ""}
       </Text>
       <TouchableOpacity style={globalStyles.button} onPress={handleRSVP}>
         <Text style={globalStyles.buttonText}>
-          {event.rsvped ? "Cancel RSVP" : "RSVP"}
+          {currentEvent.rsvped ? "Cancel RSVP" : "RSVP"}
         </Text>
       </TouchableOpacity>
       <TouchableOpacity

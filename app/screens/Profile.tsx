@@ -9,42 +9,40 @@ import {
   SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import Slider from "@react-native-community/slider";
 import { globalStyles } from "../styles/globalStyles";
 
 const categories = ["Music", "Tech", "Sports", "Art", "Food", "Networking"];
 
 export default function Profile() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  // Default maximum distance (in km)
+  const [maxDistance, setMaxDistance] = useState<number>(10);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   useEffect(() => {
     // Load user profile data on mount
     (async () => {
-      const storedName = await AsyncStorage.getItem("user_name");
-      const storedEmail = await AsyncStorage.getItem("user_email");
       const storedCategories = await AsyncStorage.getItem("user_categories");
+      const storedDistance = await AsyncStorage.getItem("maxDistance");
 
-      if (storedName) setName(storedName);
-      if (storedEmail) setEmail(storedEmail);
+      if (storedDistance) setMaxDistance(parseFloat(storedDistance));
       if (storedCategories) setSelectedCategories(JSON.parse(storedCategories));
     })();
   }, []);
 
-  const saveProfile = async () => {
+  const savePreferences = async () => {
     try {
-      await AsyncStorage.setItem("user_name", name);
-      await AsyncStorage.setItem("user_email", email);
+      await AsyncStorage.setItem("maxDistance", maxDistance.toString());
       await AsyncStorage.setItem(
         "user_categories",
         JSON.stringify(selectedCategories)
       );
       Alert.alert(
-        "Profile Saved",
-        "Your profile has been updated successfully."
+        "Preferences Saved",
+        "Your preferences have been updated successfully."
       );
     } catch (error) {
-      console.log("Error saving profile:", error);
+      console.log("Error saving preferences:", error);
     }
   };
 
@@ -57,27 +55,22 @@ export default function Profile() {
   };
 
   return (
-    <ScrollView contentContainerStyle={globalStyles.container}>
-      <Text style={globalStyles.header}>👤 Edit Profile</Text>
-
-      <Text style={globalStyles.label}>Name</Text>
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Enter your name"
-        placeholderTextColor="gray"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <Text style={globalStyles.label}>Email</Text>
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Enter your email"
-        placeholderTextColor="gray"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
+    <SafeAreaView style={globalStyles.container}>
+      <Text style={globalStyles.header}>👤 User Profile</Text>
+      <View style={{ marginVertical: 20, alignItems: "center" }}>
+        <Text>Maximum Distance: {maxDistance} km</Text>
+        <Slider
+          style={{ width: 300, height: 40 }}
+          minimumValue={1}
+          maximumValue={100}
+          step={1}
+          value={maxDistance}
+          onValueChange={(value) => setMaxDistance(value)}
+          minimumTrackTintColor="#9b59b6"
+          maximumTrackTintColor="#d3d3d3"
+          thumbTintColor="#9b59b6"
+        />
+      </View>
 
       <Text style={globalStyles.label}>Select Interests</Text>
       <View style={globalStyles.categoryContainer}>
@@ -96,9 +89,9 @@ export default function Profile() {
         ))}
       </View>
 
-      <TouchableOpacity style={globalStyles.button} onPress={saveProfile}>
-        <Text style={globalStyles.buttonText}>Save Profile</Text>
+      <TouchableOpacity style={globalStyles.button} onPress={savePreferences}>
+        <Text style={globalStyles.buttonText}>Save Preferences</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </SafeAreaView>
   );
 }

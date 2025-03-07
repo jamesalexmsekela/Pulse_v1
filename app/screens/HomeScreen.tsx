@@ -1,3 +1,4 @@
+// app/screens/HomeScreen.tsx
 import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   View,
@@ -16,6 +17,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { globalStyles } from "../styles/globalStyles";
 import { EventContext, Event } from "../context/EventContext";
 import { eventBus } from "../utils/EventBus";
+import { getDistanceFromLatLonInKm } from "../utils/distance";
 
 type RootStackParamList = {
   Home: undefined;
@@ -38,6 +40,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
   } | null>(null);
   const [userCategories, setUserCategories] = useState<string[]>([]);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [maxDistance, setMaxDistance] = useState<number>(10); // default value in km
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
   const loadUserPreferences = async () => {
@@ -48,6 +51,10 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         console.log("User Categories Loaded:", parsedCategories);
         setUserCategories(parsedCategories);
       }
+      const storedDistance = await AsyncStorage.getItem("maxDistance");
+      if (storedDistance) {
+        setMaxDistance(parseFloat(storedDistance));
+      }
     } catch (error) {
       console.log("Error loading user preferences:", error);
     } finally {
@@ -55,7 +62,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     }
   };
 
-  // Load user preferences once on mount
+  // Load preferences on mount
   useEffect(() => {
     loadUserPreferences();
   }, []);
@@ -78,45 +85,48 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
     loadLocation();
   }, []);
 
-  // Filter events based on location and user categories
+  // Filter events based on location, categories, and maxDistance
   const filterEvents = useCallback(() => {
     if (!userLocation) return;
-    const nearbyEvents = contextEvents.filter(
-      (event) =>
-        Math.abs(event.location.latitude - userLocation.latitude) < 1 &&
-        Math.abs(event.location.longitude - userLocation.longitude) < 1 &&
+    const nearbyEvents = contextEvents.filter((event) => {
+      const distance = getDistanceFromLatLonInKm(
+        userLocation.latitude,
+        userLocation.longitude,
+        event.location.latitude,
+        event.location.longitude
+      );
+      // Check both category match and that event is within maxDistance
+      return (
+        distance <= maxDistance &&
         (userCategories.length === 0 || userCategories.includes(event.category))
-    );
+      );
+    });
     console.log("Filtered Events:", nearbyEvents);
     setFilteredEvents(nearbyEvents);
-  }, [contextEvents, userLocation, userCategories]);
+  }, [contextEvents, userLocation, userCategories, maxDistance]);
 
-  // When preferences or location change, filter events
   useEffect(() => {
     if (preferencesLoaded && userLocation) {
       filterEvents();
       setLoading(false);
     }
-  }, [preferencesLoaded, userLocation, userCategories, filterEvents]);
+  }, [
+    preferencesLoaded,
+    userLocation,
+    userCategories,
+    maxDistance,
+    filterEvents,
+  ]);
 
   // Pull-to-refresh handler
   const onRefresh = async () => {
     setRefreshing(true);
-    // Re-load preferences from AsyncStorage
-    try {
-      const storedCategories = await AsyncStorage.getItem("user_categories");
-      if (storedCategories) {
-        setUserCategories(JSON.parse(storedCategories));
-      }
-    } catch (error) {
-      console.log("Error reloading user preferences:", error);
-    }
-    // Re-filter events after preferences update
+    await loadUserPreferences();
     filterEvents();
     setRefreshing(false);
   };
 
-  // Listen for the custom refresh event from the EventBus
+  // Listen for refresh events from EventBus
   useEffect(() => {
     const refreshListener = () => {
       onRefresh();

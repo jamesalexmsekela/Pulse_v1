@@ -1,6 +1,12 @@
 // app/context/EventContext.tsx
-import React, { createContext, useState, ReactNode } from "react";
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import {
+  getEvents,
+  addEvent as addEventService,
+  toggleRSVP as toggleRSVPService,
+} from "../services/eventService";
 
+// Define the Event type
 export type Event = {
   id: string;
   name: string;
@@ -9,15 +15,18 @@ export type Event = {
   date: string;
   image: string;
   description?: string;
-  rsvped?: boolean; // Represents whether the current user has RSVPed (for toggle purposes)
+  rsvped?: boolean;
   rsvpCount: number;
   maxAttendees?: number;
 };
 
+// Define the shape of the context
 type EventContextType = {
   events: Event[];
-  addEvent: (newEvent: Event) => void;
-  toggleRSVP: (eventId: string) => void;
+  addEvent: (
+    newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
+  ) => Promise<void>;
+  toggleRSVP: (eventId: string) => Promise<void>;
 };
 
 export const EventContext = createContext<EventContextType | undefined>(
@@ -25,82 +34,25 @@ export const EventContext = createContext<EventContextType | undefined>(
 );
 
 export const EventProvider = ({ children }: { children: ReactNode }) => {
-  // Seed with mock events
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1",
-      name: "Music Festival",
-      category: "Music",
-      location: { latitude: 41.861, longitude: -87.846 },
-      date: "2025-02-20",
-      image:
-        "https://unsplash.com/photos/people-raising-their-hands-on-concert-Qnlp3FCO2vc",
-      description: "Join us for a day of live music and fun!",
-      rsvped: false,
-      rsvpCount: 0,
-      maxAttendees: 100, // Example limit
-    },
-    {
-      id: "2",
-      name: "Tech Conference",
-      category: "Tech",
-      location: { latitude: 41.8128, longitude: -87.006 },
-      date: "2025-02-25",
-      image: "https://via.placeholder.com/150",
-      description: "The latest in tech innovations.",
-      rsvped: false,
-      rsvpCount: 0,
-    },
-    {
-      id: "3",
-      name: "Art Exhibition",
-      category: "Art",
-      location: { latitude: 41.8138, longitude: -87.0065 },
-      date: "2025-02-27",
-      image: "https://via.placeholder.com/150",
-      description: "Explore stunning art pieces.",
-      rsvped: false,
-      rsvpCount: 0,
-    },
-    {
-      id: "4",
-      name: "Soccer Tournament",
-      category: "Sports",
-      location: { latitude: 41.9, longitude: -87.7 },
-      date: "2025-03-05",
-      image: "https://via.placeholder.com/150",
-      description: "Competitive soccer action!",
-      rsvped: false,
-      rsvpCount: 0,
-      maxAttendees: 16, // Example limit
-    },
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
 
-  // Update toggleRSVP to adjust rsvpCount accordingly
-  const toggleRSVP = (eventId: string) => {
-    setEvents((prev) =>
-      prev.map((event) => {
-        if (event.id === eventId) {
-          // If already RSVPed, cancel RSVP and decrement count
-          if (event.rsvped) {
-            return { ...event, rsvped: false, rsvpCount: event.rsvpCount - 1 };
-          } else {
-            // If maxAttendees is set and count has reached it, do not allow RSVP
-            if (event.maxAttendees && event.rsvpCount >= event.maxAttendees) {
-              // Optionally, alert the user here
-              console.log("Maximum number of attendees reached.");
-              return event;
-            }
-            return { ...event, rsvped: true, rsvpCount: event.rsvpCount + 1 };
-          }
-        }
-        return event;
-      })
-    );
+  // Subscribe to events via the service method
+  useEffect(() => {
+    const unsubscribe = getEvents((eventsData: Event[]) => {
+      setEvents(eventsData);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Wrap service methods for consistency
+  const addEvent = async (
+    newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
+  ) => {
+    await addEventService(newEvent);
   };
 
-  const addEvent = (newEvent: Event) => {
-    setEvents((prev) => [...prev, newEvent]);
+  const toggleRSVP = async (eventId: string) => {
+    await toggleRSVPService(eventId);
   };
 
   return (

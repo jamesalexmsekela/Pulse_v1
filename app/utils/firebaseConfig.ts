@@ -1,8 +1,8 @@
 // app/utils/firebaseConfig.ts
-import firebase from "firebase/compat/app";
-import "firebase/compat/auth";
-import "firebase/compat/firestore";
-import "firebase/compat/analytics";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
+import { getAnalytics } from "firebase/analytics";
 
 // Web app's Firebase configuration
 const firebaseConfig = {
@@ -16,9 +16,9 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase if not already initialized
-if (!firebase.apps.length) {
-    const app = firebase.initializeApp(firebaseConfig);
-    firebase.analytics(app);
-  }
-
-export { firebase };
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const analytics = getAnalytics(app);
+  
+export { app, db, auth, analytics };

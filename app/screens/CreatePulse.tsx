@@ -1,10 +1,10 @@
+// app/screens/CreatePulse.tsx (excerpt)
 import React, { useState, useContext } from "react";
 import {
-  View,
+  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
@@ -29,40 +29,42 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
 
-  // For simplicity, using fixed location and image for now
-  const fixedLocation = { latitude: 41.85, longitude: -87.65 };
   const fixedImage = "https://via.placeholder.com/150";
 
-  const handleCreateEvent = () => {
-    if (!name || !category || !date) {
+  const handleCreateEvent = async () => {
+    if (!name || !category || !date || !latitude || !longitude) {
       Alert.alert(
         "Error",
-        "Please fill in all required fields (Name, Category, Date)."
+        "Please fill in all required fields (Name, Category, Date, Latitude, Longitude)."
       );
       return;
     }
-    const newEvent: Event = {
-      id: Date.now().toString(),
-      name,
-      category,
-      date,
-      image: fixedImage,
-      description,
-      location: fixedLocation,
-      rsvped: false,
-      rsvpCount: 0,
-      maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined, // Set limit if provided
-    };
-    addEvent(newEvent);
-    Alert.alert("Success", "Event created successfully!");
-    navigation.navigate("Home");
+    try {
+      await addEvent({
+        name,
+        category,
+        date,
+        image: fixedImage,
+        description,
+        location: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+        },
+        maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
+      });
+      Alert.alert("Success", "Event created successfully!");
+      navigation.navigate("Home");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
   };
 
   return (
     <SafeAreaView style={globalStyles.container}>
       <Text style={globalStyles.header}>Create a new Pulse Event! 📢</Text>
-
       <TextInput
         style={globalStyles.input}
         placeholder="Event Name"
@@ -98,6 +100,22 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         placeholderTextColor="gray"
         value={maxAttendees}
         onChangeText={setMaxAttendees}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Latitude"
+        placeholderTextColor="gray"
+        value={latitude}
+        onChangeText={setLatitude}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={globalStyles.input}
+        placeholder="Longitude"
+        placeholderTextColor="gray"
+        value={longitude}
+        onChangeText={setLongitude}
         keyboardType="numeric"
       />
 

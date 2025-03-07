@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
-import { firebase } from "../utils/firebaseConfig";
+import { auth } from "../utils/firebaseConfig";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 
 type RootStackParamList = {
   Signup: undefined;
@@ -33,15 +34,17 @@ export default function Signup({ navigation }: SignupScreenProps) {
       return;
     }
     try {
-      const userCredential = await firebase
-        .auth()
-        .createUserWithEmailAndPassword(email, password);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
-      // Optionally update the user's profile with their name
       if (user) {
-        await user.updateProfile({ displayName: name });
+        await updateProfile(user, { displayName: name });
       }
       Alert.alert("Success", "Account created successfully!");
+      // Auth state change in App.tsx will handle navigation
     } catch (error: any) {
       Alert.alert("Signup Error", error.message);
     }

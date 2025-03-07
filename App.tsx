@@ -2,13 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { globalStyles } from "./app/styles/globalStyles";
-import { firebase } from "./app/utils/firebaseConfig";
+import { auth } from "./app/utils/firebaseConfig";
 import { EventProvider } from "./app/context/EventContext";
 import AppNavigator from "./app/navigation/AppNavigator";
 import AuthNavigator from "./app/navigation/AuthNavigator";
 import { NavigationContainer } from "@react-navigation/native";
 import { registerForPushNotificationsAsync } from "./app/utils/notifications";
 import NotificationHandler from "./app/components/NotificationHandler";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -16,7 +17,7 @@ export default function App() {
 
   // Always call hooks unconditionally
   useEffect(() => {
-    const unsubscribe = firebase.auth().onAuthStateChanged((usr) => {
+    const unsubscribe = onAuthStateChanged(auth, (usr) => {
       setUser(usr);
       setLoading(false);
     });
