@@ -4,6 +4,7 @@ import {
   getEvents,
   addEvent as addEventService,
   toggleRSVP as toggleRSVPService,
+  deleteEvent as deleteEventService,
 } from "../services/eventService";
 
 // Define the Event type
@@ -18,14 +19,16 @@ export type Event = {
   rsvped?: boolean;
   rsvpCount: number;
   maxAttendees?: number;
+  creatorId: string;
 };
 
 // Define the shape of the context
 type EventContextType = {
   events: Event[];
   addEvent: (
-    newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
+    newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped" | "creatorId">
   ) => Promise<void>;
+  deleteEvent: (eventId: string) => Promise<void>;
   toggleRSVP: (eventId: string) => Promise<void>;
 };
 
@@ -45,18 +48,25 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Wrap service methods for consistency
-  const addEvent = async (
-    newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
-  ) => {
-    await addEventService(newEvent);
-  };
+  //   const addEvent = async (
+  //     newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
+  //   ) => {
+  //     await addEventService(newEvent);
+  //   };
 
   const toggleRSVP = async (eventId: string) => {
     await toggleRSVPService(eventId);
   };
 
   return (
-    <EventContext.Provider value={{ events, addEvent, toggleRSVP }}>
+    <EventContext.Provider
+      value={{
+        events,
+        toggleRSVP,
+        addEvent: addEventService,
+        deleteEvent: deleteEventService,
+      }}
+    >
       {children}
     </EventContext.Provider>
   );

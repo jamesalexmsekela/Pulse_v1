@@ -1,3 +1,4 @@
+// app/screens/EventDetails.tsx
 import React, { useContext, useEffect, useState } from "react";
 import {
   View,
@@ -5,11 +6,14 @@ import {
   TouchableOpacity,
   Image,
   SafeAreaView,
+  Alert,
 } from "react-native";
 import { useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { EventContext, Event } from "../context/EventContext";
+import { db, auth } from "../utils/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 type RootStackParamList = {
   Home: undefined;
@@ -31,14 +35,30 @@ export default function EventDetails({
 }) {
   const route = useRoute<EventDetailsRouteProp>();
   const { eventId } = route.params;
-  const { events, toggleRSVP } = useContext(EventContext)!;
+  const { events, toggleRSVP, deleteEvent } = useContext(EventContext)!;
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userHasRSVPed, setUserHasRSVPed] = useState<boolean>(false);
 
-  // Use local state to hold the current event
   const [currentEvent, setCurrentEvent] = useState<Event | undefined>(() =>
     events.find((e) => e.id === eventId)
   );
 
-  // Update local state whenever the global events change
+  useEffect(() => {
+    const user = auth.currentUser;
+    setCurrentUserId(user ? user.uid : null);
+  }, []);
+
+  useEffect(() => {
+    const fetchRSVPStatus = async () => {
+      if (!currentUserId) return;
+      const rsvpRef = doc(db, "events", eventId, "rsvps", currentUserId);
+      const rsvpSnap = await getDoc(rsvpRef);
+      setUserHasRSVPed(rsvpSnap.exists());
+    };
+
+    fetchRSVPStatus();
+  }, [eventId, currentUserId]);
+
   useEffect(() => {
     const updatedEvent = events.find((e) => e.id === eventId);
     setCurrentEvent(updatedEvent);
@@ -58,8 +78,28 @@ export default function EventDetails({
     );
   }
 
-  const handleRSVP = () => {
-    toggleRSVP(currentEvent.id);
+  const handleDeleteEvent = async () => {
+    try {
+      await deleteEvent(currentEvent.id);
+      Alert.alert("Success", "Event deleted successfully.");
+      navigation.navigate("Home");
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  const handleRSVP = async () => {
+    if (
+      currentEvent.maxAttendees &&
+      currentEvent.rsvpCount >= currentEvent.maxAttendees &&
+      !userHasRSVPed // Allow cancellation, but block new RSVPs
+    ) {
+      Alert.alert("RSVP Full", "This event has reached its maximum capacity.");
+      return;
+    }
+
+    await toggleRSVP(currentEvent.id);
+    setUserHasRSVPed(!userHasRSVPed); // Optimistically update UI
   };
 
   return (
@@ -77,11 +117,44 @@ export default function EventDetails({
         RSVPs: {currentEvent.rsvpCount}{" "}
         {currentEvent.maxAttendees ? `/ ${currentEvent.maxAttendees}` : ""}
       </Text>
-      <TouchableOpacity style={globalStyles.button} onPress={handleRSVP}>
+
+      {/* RSVP Button - Disabled if Full */}
+      <TouchableOpacity
+        style={[
+          globalStyles.button,
+          currentEvent.maxAttendees &&
+          currentEvent.rsvpCount >= currentEvent.maxAttendees &&
+          !userHasRSVPed
+            ? { backgroundColor: "gray" }
+            : {},
+        ]}
+        onPress={handleRSVP}
+        disabled={
+          !!(
+            currentEvent.maxAttendees &&
+            currentEvent.rsvpCount >= currentEvent.maxAttendees &&
+            !userHasRSVPed
+          )
+        }
+      >
         <Text style={globalStyles.buttonText}>
-          {currentEvent.rsvped ? "Cancel RSVP" : "RSVP"}
+          {userHasRSVPed ? "Cancel RSVP" : "RSVP"}
         </Text>
       </TouchableOpacity>
+
+      {/* Show Delete Button Only if User is Creator */}
+      {currentEvent.creatorId === currentUserId && (
+        <TouchableOpacity
+          style={[
+            globalStyles.button,
+            { backgroundColor: "red", marginTop: 10 },
+          ]}
+          onPress={handleDeleteEvent}
+        >
+          <Text style={globalStyles.buttonText}>Delete Event</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={[globalStyles.button, { marginTop: 10 }]}
         onPress={() => navigation.goBack()}

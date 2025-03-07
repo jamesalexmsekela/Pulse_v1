@@ -10,6 +10,7 @@ import {
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { EventContext, Event } from "../context/EventContext";
+import * as Location from "expo-location";
 
 type RootStackParamList = {
   Home: undefined;
@@ -29,30 +30,34 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [address, setAddress] = useState(""); // New address field
 
   const fixedImage = "https://via.placeholder.com/150";
 
   const handleCreateEvent = async () => {
-    if (!name || !category || !date || !latitude || !longitude) {
+    if (!name || !category || !date || !address) {
       Alert.alert(
         "Error",
-        "Please fill in all required fields (Name, Category, Date, Latitude, Longitude)."
+        "Please fill in all required fields (Name, Category, Date, Address)."
       );
       return;
     }
     try {
+      // Geocode the address to obtain latitude and longitude
+      const geocodeResults = await Location.geocodeAsync(address);
+      if (geocodeResults.length === 0) {
+        Alert.alert("Error", "Could not determine location from address.");
+        return;
+      }
+      const { latitude, longitude } = geocodeResults[0];
+
       await addEvent({
         name,
         category,
         date,
         image: fixedImage,
         description,
-        location: {
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude),
-        },
+        location: { latitude, longitude },
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
       });
       Alert.alert("Success", "Event created successfully!");
@@ -104,19 +109,10 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
       />
       <TextInput
         style={globalStyles.input}
-        placeholder="Latitude"
+        placeholder="Event Address (e.g., 605 West Madison Street, Apartment 1503, Chicago, IL)"
         placeholderTextColor="gray"
-        value={latitude}
-        onChangeText={setLatitude}
-        keyboardType="numeric"
-      />
-      <TextInput
-        style={globalStyles.input}
-        placeholder="Longitude"
-        placeholderTextColor="gray"
-        value={longitude}
-        onChangeText={setLongitude}
-        keyboardType="numeric"
+        value={address}
+        onChangeText={setAddress}
       />
 
       <TouchableOpacity style={globalStyles.button} onPress={handleCreateEvent}>

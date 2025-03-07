@@ -30,6 +30,7 @@ function HomeStack() {
       }}
     >
       <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="EventDetails" component={EventDetails} />
     </Stack.Navigator>
   );
 }
@@ -65,7 +66,6 @@ export default function AppNavigator() {
         component={CreatePulse}
         options={{ headerShown: false }}
       />
-      <Tab.Screen name="EventDetails" component={EventDetails} />
       <Tab.Screen name="Profile" component={Profile} />
     </Tab.Navigator>
   );
