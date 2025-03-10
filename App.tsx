@@ -1,4 +1,5 @@
 // App.tsx
+import "react-native-get-random-values";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator } from "react-native";
 import { globalStyles } from "./app/styles/globalStyles";

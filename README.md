@@ -27,8 +27,8 @@ Pulse v1 is an event planning application designed to connect people with events
   - The app uses a conditional navigation flow to switch between authentication screens and the main app.
 - **Global Event Context:**
   - A React Context manages event data globally, ensuring that updates (such as RSVP counts) are reflected throughout the app.
-- **Open-Source & MIT Licensed:**
-  - This project is released under the MIT License.
+- **Security & Licensing:**
+  - Project source code is now protected under **All Rights Reserved** license.
 
 ## Technology Stack & Tools
 
@@ -47,8 +47,6 @@ Pulse v1 is an event planning application designed to connect people with events
   - Expo Notifications for real-time updates
 - **Version Control:**
   - Git & GitHub
-- **License:**
-  - MIT License
 
 ## Getting Started
 
@@ -106,7 +104,7 @@ For available versions, see the tags on this repository.
 
 ## License
 
-This project is licensed under the MIT License.
+All Rights Reserved © James Msekela {2025}.
 
 ## Acknowledgments
 
