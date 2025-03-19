@@ -1,10 +1,11 @@
+// app/styles/globalStyles.ts
 import { StyleSheet } from 'react-native';
 import styles from './styles';
 
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 10,
+    padding: styles.spacing.medium,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: styles.colors.background,
@@ -21,6 +22,7 @@ export const globalStyles = StyleSheet.create({
     padding: styles.button.padding,
     borderRadius: styles.button.borderRadius,
     alignItems: 'center',
+    marginVertical: styles.spacing.small,
   },
   buttonText: {
     fontSize: styles.typography.button.fontSize,
@@ -29,8 +31,8 @@ export const globalStyles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    padding: 10,
-    marginVertical: 8,
+    padding: styles.spacing.medium,
+    marginVertical: styles.spacing.small,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -48,7 +50,7 @@ export const globalStyles = StyleSheet.create({
   eventTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginTop: 5,
+    marginTop: styles.spacing.small,
   },
   eventDate: {
     fontSize: 14,
@@ -59,7 +61,7 @@ export const globalStyles = StyleSheet.create({
     fontWeight: 'bold',
     alignSelf: 'flex-start',
     marginBottom: 5,
-    marginLeft: 10,
+    marginLeft: styles.spacing.medium,
   },
   input: {
     width: '90%',
@@ -67,7 +69,7 @@ export const globalStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 8,
-    marginBottom: 15,
+    marginBottom: styles.spacing.medium,
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -76,11 +78,29 @@ export const globalStyles = StyleSheet.create({
   },
   categoryButton: {
     backgroundColor: '#E5E5E5',
-    padding: 10,
+    padding: styles.spacing.small,
     borderRadius: 5,
     margin: 5,
   },
   categorySelected: {
-    backgroundColor: '#9b59b6',
+    backgroundColor: styles.colors.primary,
+  },
+  // New style definitions for profile picture
+  profileImageContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#ccc",
+    marginVertical: styles.spacing.small,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginVertical: styles.spacing.small,
   },
 });
+
+export default globalStyles;

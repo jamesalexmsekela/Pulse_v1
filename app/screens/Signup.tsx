@@ -6,12 +6,15 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
+  View,
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { createUserProfile } from "../services/userService"; // Import userService
+import { createUserProfile } from "../services/userService";
+import { pickImage, uploadImageAsync } from "../utils/imageHelper";
 
 type RootStackParamList = {
   Signup: undefined;
@@ -27,6 +30,16 @@ export default function Signup({ navigation }: SignupScreenProps) {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [imageUri, setImageUri] = useState<string>(""); // Local URI from picker
+  const [photoURL, setPhotoURL] = useState<string>(""); // Final download URL
+  const [loading, setLoading] = useState(false);
+
+  const handleUploadProfilePicture = async () => {
+    const uri = await pickImage();
+    if (!uri) return; // User cancelled or permission denied
+    setImageUri(uri);
+    Alert.alert("Success", "Image selected successfully!");
+  };
 
   const handleSignup = async () => {
     if (password !== confirmPassword) {
@@ -34,6 +47,8 @@ export default function Signup({ navigation }: SignupScreenProps) {
       return;
     }
     try {
+      setLoading(true);
+      // Create the user account
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
@@ -41,21 +56,30 @@ export default function Signup({ navigation }: SignupScreenProps) {
       );
       const user = userCredential.user;
       if (user) {
+        // Update the user's display name
         await updateProfile(user, { displayName: name });
-        // Create a new user profile in Firestore using the userService
+        let finalPhotoURL = "";
+        // If the user picked an image, upload it using the user's UID
+        if (imageUri) {
+          finalPhotoURL = await uploadImageAsync(imageUri, user.uid);
+          setPhotoURL(finalPhotoURL);
+        }
+        // Create the user profile in Firestore with the final photo URL
         await createUserProfile({
           id: user.uid,
           name,
           email,
-          photoURL: user.photoURL || "",
+          photoURL: finalPhotoURL, // Use finalPhotoURL (empty string if none)
           preferences: [],
-          maxDistance: 10, // default value; adjust as needed
+          maxDistance: 10, // default value
         });
       }
       Alert.alert("Success", "Account created successfully!");
-      // Auth state change in App.tsx will handle navigation
+      // Navigation will be handled by auth state change
     } catch (error: any) {
       Alert.alert("Signup Error", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,6 +117,23 @@ export default function Signup({ navigation }: SignupScreenProps) {
         onChangeText={setConfirmPassword}
         secureTextEntry
       />
+
+      {/* Display the selected image preview */}
+      {imageUri ? (
+        <Image source={{ uri: imageUri }} style={globalStyles.profileImage} />
+      ) : (
+        <View style={globalStyles.profileImageContainer}>
+          <Text style={{ color: "#fff" }}>No Image</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={globalStyles.button}
+        onPress={handleUploadProfilePicture}
+      >
+        <Text style={globalStyles.buttonText}>Upload Profile Picture</Text>
+      </TouchableOpacity>
+
       <TouchableOpacity style={globalStyles.button} onPress={handleSignup}>
         <Text style={globalStyles.buttonText}>Create Account</Text>
       </TouchableOpacity>

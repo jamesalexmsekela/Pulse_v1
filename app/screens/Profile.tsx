@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Slider from "@react-native-community/slider";
 import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
-import { updateUserProfile } from "../services/userService";
+import { updateUserProfile, getUserProfile } from "../services/userService"; // Import getUserProfile as well
 import { pickImage, uploadImageAsync } from "../utils/imageHelper";
 
 const categories = ["Music", "Tech", "Sports", "Art", "Food", "Networking"];
@@ -24,14 +24,29 @@ export default function Profile() {
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Load preferences and user profile data on mount
   useEffect(() => {
     (async () => {
-      const storedCategories = await AsyncStorage.getItem("user_categories");
-      const storedDistance = await AsyncStorage.getItem("maxDistance");
+      try {
+        const storedCategories = await AsyncStorage.getItem("user_categories");
+        const storedDistance = await AsyncStorage.getItem("maxDistance");
+        if (storedDistance) setMaxDistance(parseFloat(storedDistance));
+        if (storedCategories)
+          setSelectedCategories(JSON.parse(storedCategories));
 
-      if (storedDistance) setMaxDistance(parseFloat(storedDistance));
-      if (storedCategories) setSelectedCategories(JSON.parse(storedCategories));
-      setLoading(false);
+        // Fetch the user's profile from Firestore
+        const user = auth.currentUser;
+        if (user) {
+          const profile = await getUserProfile(user.uid);
+          if (profile && profile.photoURL) {
+            setPhotoURL(profile.photoURL);
+          }
+        }
+      } catch (error) {
+        console.log("Error loading preferences or user profile:", error);
+      } finally {
+        setLoading(false);
+      }
     })();
   }, []);
 
@@ -69,7 +84,7 @@ export default function Profile() {
         await updateUserProfile(user.uid, {
           preferences: selectedCategories,
           maxDistance,
-          photoURL: photoURL || undefined, // update photoURL if changed
+          photoURL: photoURL || "",
         });
       }
 
@@ -103,25 +118,11 @@ export default function Profile() {
       <Text style={globalStyles.header}>👤 User Profile</Text>
       <View style={{ alignItems: "center", marginVertical: 20 }}>
         {photoURL ? (
-          <Image
-            source={{ uri: photoURL }}
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              marginBottom: 10,
-            }}
-          />
+          <Image source={{ uri: photoURL }} style={globalStyles.profileImage} />
         ) : (
-          <View
-            style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              backgroundColor: "#ccc",
-              marginBottom: 10,
-            }}
-          />
+          <View style={globalStyles.profileImageContainer}>
+            <Text style={{ color: "#fff" }}>No Image</Text>
+          </View>
         )}
         <TouchableOpacity
           style={globalStyles.button}
