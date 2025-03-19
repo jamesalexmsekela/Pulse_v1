@@ -15,7 +15,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { useFocusEffect } from "@react-navigation/native";
 import { globalStyles } from "../styles/globalStyles";
-import { EventContext, Event } from "../context/EventContext";
+import { EventContext } from "../context/EventContext";
+import { Event } from "../models/Event";
 import { eventBus } from "../utils/EventBus";
 import { getDistanceFromLatLonInKm } from "../utils/distance";
 
@@ -95,12 +96,19 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
         event.location.latitude,
         event.location.longitude
       );
-      // Check both category match and that event is within maxDistance
+
+      const userWithinRadius = distance <= maxDistance;
+      const eventAllowsVisibility = event.visibilityRadius
+        ? distance <= event.visibilityRadius
+        : true; // if not set, event is visible to all users within their own radius
+
       return (
-        distance <= maxDistance &&
+        userWithinRadius &&
+        eventAllowsVisibility &&
         (userCategories.length === 0 || userCategories.includes(event.category))
       );
     });
+
     console.log("Filtered Events:", nearbyEvents);
     setFilteredEvents(nearbyEvents);
   }, [contextEvents, userLocation, userCategories, maxDistance]);

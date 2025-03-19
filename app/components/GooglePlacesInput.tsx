@@ -36,7 +36,7 @@ const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
           console.error("GooglePlacesAutocomplete error:", error)
         }
         query={{
-          key: GOOGLE_PLACES_API_KEY, // Replace with your API key
+          key: GOOGLE_PLACES_API_KEY,
           language: "en",
         }}
         fetchDetails={true}

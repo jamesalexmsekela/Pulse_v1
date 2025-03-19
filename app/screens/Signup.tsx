@@ -1,17 +1,17 @@
 // app/screens/Signup.tsx
 import React, { useState } from "react";
 import {
-  View,
+  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { createUserProfile } from "../services/userService"; // Import userService
 
 type RootStackParamList = {
   Signup: undefined;
@@ -42,6 +42,15 @@ export default function Signup({ navigation }: SignupScreenProps) {
       const user = userCredential.user;
       if (user) {
         await updateProfile(user, { displayName: name });
+        // Create a new user profile in Firestore using the userService
+        await createUserProfile({
+          id: user.uid,
+          name,
+          email,
+          photoURL: user.photoURL || "",
+          preferences: [],
+          maxDistance: 10, // default value; adjust as needed
+        });
       }
       Alert.alert("Success", "Account created successfully!");
       // Auth state change in App.tsx will handle navigation

@@ -1,11 +1,10 @@
 // app/screens/Login.tsx
 import React, { useState } from "react";
 import {
-  View,
+  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
 } from "react-native";
 import { StackNavigationProp } from "@react-navigation/stack";

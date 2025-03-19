@@ -1,26 +1,12 @@
 // app/context/EventContext.tsx
 import React, { createContext, useState, useEffect, ReactNode } from "react";
+import { Event } from "../models/Event";
 import {
   getEvents,
   addEvent as addEventService,
   toggleRSVP as toggleRSVPService,
   deleteEvent as deleteEventService,
 } from "../services/eventService";
-
-// Define the Event type
-export type Event = {
-  id: string;
-  name: string;
-  category: string;
-  location: { latitude: number; longitude: number };
-  date: string;
-  image: string;
-  description?: string;
-  rsvped?: boolean;
-  rsvpCount: number;
-  maxAttendees?: number;
-  creatorId: string;
-};
 
 // Define the shape of the context
 type EventContextType = {
@@ -46,13 +32,6 @@ export const EventProvider = ({ children }: { children: ReactNode }) => {
     });
     return unsubscribe;
   }, []);
-
-  // Wrap service methods for consistency
-  //   const addEvent = async (
-  //     newEvent: Omit<Event, "id" | "rsvpCount" | "rsvped">
-  //   ) => {
-  //     await addEventService(newEvent);
-  //   };
 
   const toggleRSVP = async (eventId: string) => {
     await toggleRSVPService(eventId);

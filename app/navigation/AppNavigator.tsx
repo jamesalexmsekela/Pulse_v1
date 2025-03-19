@@ -11,6 +11,7 @@ import CreatePulse from "../screens/CreatePulse";
 import EventDetails from "../screens/EventDetails";
 import Profile from "../screens/Profile";
 import LocationEntryScreen from "../screens/LocationEntryScreen";
+import AttendeesScreen from "../screens/AttendeesScreen";
 
 type RootStackParamList = {
   Home: undefined;
@@ -21,6 +22,8 @@ type RootStackParamList = {
       longitude: number;
     }) => void;
   };
+  Profile: undefined;
+  Attendees: { eventId: string };
 };
 
 type CreatePulseStackParamList = {
@@ -48,6 +51,7 @@ function HomeStackScreen() {
     >
       <HomeStack.Screen name="Home" component={HomeScreen} />
       <HomeStack.Screen name="EventDetails" component={EventDetails} />
+      <HomeStack.Screen name="Attendees" component={AttendeesScreen} />
     </HomeStack.Navigator>
   );
 }

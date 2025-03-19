@@ -1,42 +1,55 @@
+// app/screens/Profile.tsx
 import React, { useState, useEffect } from "react";
 import {
-  View,
+  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
-  ScrollView,
   Alert,
-  SafeAreaView,
+  View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Slider from "@react-native-community/slider";
 import { globalStyles } from "../styles/globalStyles";
+import { auth } from "../utils/firebaseConfig";
+import { updateUserProfile } from "../services/userService"; // Import updateUserProfile
 
 const categories = ["Music", "Tech", "Sports", "Art", "Food", "Networking"];
 
 export default function Profile() {
-  // Default maximum distance (in km)
   const [maxDistance, setMaxDistance] = useState<number>(10);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Load user profile data on mount
     (async () => {
       const storedCategories = await AsyncStorage.getItem("user_categories");
       const storedDistance = await AsyncStorage.getItem("maxDistance");
 
       if (storedDistance) setMaxDistance(parseFloat(storedDistance));
       if (storedCategories) setSelectedCategories(JSON.parse(storedCategories));
+      setLoading(false);
     })();
   }, []);
 
   const savePreferences = async () => {
     try {
+      // Update local storage for immediate caching
       await AsyncStorage.setItem("maxDistance", maxDistance.toString());
       await AsyncStorage.setItem(
         "user_categories",
         JSON.stringify(selectedCategories)
       );
+
+      // Update Firestore user profile via userService
+      const user = auth.currentUser;
+      if (user) {
+        await updateUserProfile(user.uid, {
+          preferences: selectedCategories,
+          maxDistance,
+        });
+      }
+
       Alert.alert(
         "Preferences Saved",
         "Your preferences have been updated successfully."
@@ -53,6 +66,14 @@ export default function Profile() {
         : [...prev, category]
     );
   };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={globalStyles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={globalStyles.container}>

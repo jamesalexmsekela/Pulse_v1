@@ -1,6 +1,4 @@
 // app/services/eventService.ts
-import { db } from "../utils/firebaseConfig";
-import { Event } from "../context/EventContext";
 import {
   collection,
   onSnapshot,
@@ -12,6 +10,9 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { auth } from "../utils/firebaseConfig";
+import { arrayUnion, arrayRemove } from "firebase/firestore";
+import { db } from "../utils/firebaseConfig";
+import { Event } from "../models/Event";
 
 // Listen for real-time updates on events.
 export const getEvents = (callback: (events: Event[]) => void) => {
@@ -69,51 +70,56 @@ export const deleteEvent = async (eventId: string) => {
     await deleteDoc(eventRef);
   };
 
-// Toggle RSVP using Firestore subcollection
+// Toggle RSVP using Firestore subcollection and update attendees list
 export const toggleRSVP = async (eventId: string) => {
-    const user = auth.currentUser;
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-    const userId = user.uid;
-  
-    const eventRef = doc(db, "events", eventId);
-    const rsvpRef = doc(collection(eventRef, "rsvps"), userId);
-  
-    try {
-      await runTransaction(db, async (transaction) => {
-        const eventDoc = await transaction.get(eventRef);
-        const userRsvpDoc = await transaction.get(rsvpRef);
-  
-        if (!eventDoc.exists()) {
-          throw new Error("Event does not exist!");
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("User not authenticated");
+  }
+  const userId = user.uid;
+
+  const eventRef = doc(db, "events", eventId);
+  const rsvpRef = doc(collection(eventRef, "rsvps"), userId);
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const eventDoc = await transaction.get(eventRef);
+      const userRsvpDoc = await transaction.get(rsvpRef);
+
+      if (!eventDoc.exists()) {
+        throw new Error("Event does not exist!");
+      }
+
+      const eventData = eventDoc.data();
+      let newRsvpCount = eventData.rsvpCount || 0;
+      let attendeesUpdate: { attendees: any } = { attendees: [] };
+
+      if (userRsvpDoc.exists()) {
+        // User already RSVPed → Remove RSVP
+        transaction.delete(rsvpRef);
+        newRsvpCount -= 1;
+        attendeesUpdate = { attendees: arrayRemove(userId) };
+      } else {
+        // Prevent RSVP if event is full
+        if (eventData.maxAttendees && newRsvpCount >= eventData.maxAttendees) {
+          throw new Error("This event has reached its maximum attendance.");
         }
-  
-        const eventData = eventDoc.data();
-        let newRsvpCount = eventData.rsvpCount || 0;
-  
-        if (userRsvpDoc.exists()) {
-          // User already RSVPed → Remove RSVP
-          transaction.delete(rsvpRef);
-          newRsvpCount -= 1;
-        } else {
-          // Prevent RSVP if event is full
-          if (eventData.maxAttendees && newRsvpCount >= eventData.maxAttendees) {
-            throw new Error("This event has reached its maximum attendance.");
-          }
-  
-          // User RSVPing → Add RSVP
-          transaction.set(rsvpRef, { userId });
-          newRsvpCount += 1;
-        }
-  
-        // Update RSVP count on the event
-        transaction.update(eventRef, { rsvpCount: newRsvpCount });
+        // User RSVPing → Add RSVP
+        transaction.set(rsvpRef, { userId });
+        newRsvpCount += 1;
+        attendeesUpdate = { attendees: arrayUnion(userId) };
+      }
+
+      // Update both the rsvpCount and attendees array in a single update call
+      transaction.update(eventRef, {
+        rsvpCount: newRsvpCount,
+        ...attendeesUpdate,
       });
-  
-      console.log("RSVP successfully toggled");
-    } catch (error) {
-      console.error("Error in toggleRSVP:", error);
-      throw error;
-    }
-  };
+    });
+
+    console.log("RSVP successfully toggled");
+  } catch (error) {
+    console.error("Error in toggleRSVP:", error);
+    throw error;
+  }
+};

@@ -39,7 +39,7 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
-  // Store location as an object including an address string
+  const [visibilityRadius, setVisibilityRadius] = useState("");
   const [location, setLocation] = useState<LocationType | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -61,12 +61,15 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         date,
         image: fixedImage,
         description,
-        // Use the coordinates only for storing; the display can use location.address
         location: {
           latitude: location.latitude,
           longitude: location.longitude,
         },
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
+        // Conditionally add visibilityRadius only if a valid value is provided
+        ...(visibilityRadius
+          ? { visibilityRadius: parseFloat(visibilityRadius) }
+          : {}),
       });
       Alert.alert("Success", "Event created successfully!");
       setLoading(false);
@@ -125,6 +128,14 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
             placeholderTextColor="gray"
             value={maxAttendees}
             onChangeText={setMaxAttendees}
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="Visibility Radius in km (optional)"
+            placeholderTextColor="gray"
+            value={visibilityRadius}
+            onChangeText={setVisibilityRadius}
             keyboardType="numeric"
           />
 
