@@ -14,13 +14,18 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { EventContext } from "../context/EventContext";
-import GooglePlacesInput from "../components/GooglePlacesInput";
+import GooglePlacesInput, {
+  LocationType,
+} from "../components/GooglePlacesInput";
 
 type RootStackParamList = {
   Home: undefined;
   CreatePulse: undefined;
   EventDetails: { eventId: string };
   Profile: undefined;
+  LocationEntry: {
+    onLocationSelected: (location: LocationType) => void;
+  };
 };
 
 type CreatePulseProps = {
@@ -34,10 +39,8 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [date, setDate] = useState("");
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
-  const [location, setLocation] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  // Store location as an object including an address string
+  const [location, setLocation] = useState<LocationType | null>(null);
   const [loading, setLoading] = useState(false);
 
   const fixedImage = "https://via.placeholder.com/150";
@@ -58,7 +61,11 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         date,
         image: fixedImage,
         description,
-        location,
+        // Use the coordinates only for storing; the display can use location.address
+        location: {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        },
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
       });
       Alert.alert("Success", "Event created successfully!");
@@ -120,7 +127,29 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
             onChangeText={setMaxAttendees}
             keyboardType="numeric"
           />
-          <GooglePlacesInput onLocationSelected={(loc) => setLocation(loc)} />
+
+          {/* Display the address string if available */}
+          {location && (
+            <Text style={{ marginVertical: 10 }}>
+              Selected Location: {location.address}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            style={[globalStyles.button, { marginVertical: 10 }]}
+            onPress={() =>
+              navigation.navigate("LocationEntry", {
+                onLocationSelected: (loc: LocationType) => {
+                  setLocation(loc);
+                },
+              })
+            }
+          >
+            <Text style={globalStyles.buttonText}>
+              {location ? "Change Location" : "Input Location"}
+            </Text>
+          </TouchableOpacity>
+
           {loading ? (
             <ActivityIndicator size="large" color="purple" />
           ) : (

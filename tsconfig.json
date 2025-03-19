@@ -12,5 +12,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
+  "include": [
+    "env.d.ts",
+    "src/**/*",
+    "App.tsx"
+  ],
   "extends": "expo/tsconfig.base"
 }

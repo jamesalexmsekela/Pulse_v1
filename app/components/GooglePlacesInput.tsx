@@ -3,32 +3,40 @@ import React from "react";
 import { View } from "react-native";
 import { GooglePlacesAutocomplete } from "react-native-google-places-autocomplete";
 import { globalStyles } from "../styles/globalStyles";
+import { GOOGLE_PLACES_API_KEY } from "@env";
+
+export type LocationType = {
+  latitude: number;
+  longitude: number;
+  address: string;
+};
 
 type GooglePlacesInputProps = {
-  onLocationSelected: (location: {
-    latitude: number;
-    longitude: number;
-  }) => void;
+  onLocationSelected: (location: LocationType) => void;
 };
 
 const GooglePlacesInput: React.FC<GooglePlacesInputProps> = ({
   onLocationSelected,
 }) => {
   return (
-    <View style={{ flex: 0, width: "100%", zIndex: 9999 }}>
+    <View style={{ flex: 0, width: "90%", zIndex: 9999 }}>
       <GooglePlacesAutocomplete
-        placeholder="Enter event address"
+        placeholder="Search"
         onPress={(data, details = null) => {
           if (details?.geometry?.location) {
             const { lat, lng } = details.geometry.location;
-            onLocationSelected({ latitude: lat, longitude: lng });
+            onLocationSelected({
+              latitude: lat,
+              longitude: lng,
+              address: data.description,
+            });
           }
         }}
         onFail={(error) =>
           console.error("GooglePlacesAutocomplete error:", error)
         }
         query={{
-          key: "AIzaSyD9lWsIa8fEBmXhJisXZmwOdf2dlYnM65E", // Replace with your key
+          key: GOOGLE_PLACES_API_KEY, // Replace with your API key
           language: "en",
         }}
         fetchDetails={true}

@@ -3,19 +3,18 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
+import { FIREBASE_API_KEY, FIREBASE_AUTH_DOMAIN, FIREBASE_PROJECT_ID, FIREBASE_STORAGE_BUCKET, FIREBASE_MESSAGING_SENDER_ID, FIREBASE_APP_ID, FIREBASE_MEASUREMENT_ID } from "@env";
 
-// Web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBASdbuMb01sEoDbcQfB6QjePqEl5EHtLo",
-  authDomain: "pulse-v1-4fb34.firebaseapp.com",
-  projectId: "pulse-v1-4fb34",
-  storageBucket: "pulse-v1-4fb34.firebasestorage.app",
-  messagingSenderId: "349089045712",
-  appId: "1:349089045712:web:b23f24366cd1b7fd0e12d5",
-  measurementId: "G-R9M10YKTRW"
+  apiKey: FIREBASE_API_KEY,
+  authDomain: FIREBASE_AUTH_DOMAIN,
+  projectId: FIREBASE_PROJECT_ID,
+  storageBucket: FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+  appId: FIREBASE_APP_ID,
+  measurementId: FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase if not already initialized
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);

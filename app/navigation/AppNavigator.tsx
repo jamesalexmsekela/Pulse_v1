@@ -1,3 +1,4 @@
+// app/navigation/AppNavigator.tsx
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
@@ -9,29 +10,57 @@ import HomeScreen from "../screens/HomeScreen";
 import CreatePulse from "../screens/CreatePulse";
 import EventDetails from "../screens/EventDetails";
 import Profile from "../screens/Profile";
+import LocationEntryScreen from "../screens/LocationEntryScreen";
 
 type RootStackParamList = {
   Home: undefined;
-  CreatePulse: undefined;
   EventDetails: { eventId: string };
-  Profile: undefined;
+  LocationEntry: {
+    onLocationSelected: (location: {
+      latitude: number;
+      longitude: number;
+    }) => void;
+  };
+};
+
+type CreatePulseStackParamList = {
+  CreatePulse: undefined;
+  LocationEntry: {
+    onLocationSelected: (location: {
+      latitude: number;
+      longitude: number;
+    }) => void;
+  };
 };
 
 const Tab = createBottomTabNavigator();
-const Stack = createStackNavigator<RootStackParamList>();
+const HomeStack = createStackNavigator<RootStackParamList>();
+const CreatePulseStack = createStackNavigator<CreatePulseStackParamList>();
 
-function HomeStack() {
+function HomeStackScreen() {
   return (
-    <Stack.Navigator
+    <HomeStack.Navigator
       screenOptions={{
         headerShown: false,
         gestureEnabled: true,
         gestureDirection: "horizontal",
       }}
     >
-      <Stack.Screen name="Home" component={HomeScreen} />
-      <Stack.Screen name="EventDetails" component={EventDetails} />
-    </Stack.Navigator>
+      <HomeStack.Screen name="Home" component={HomeScreen} />
+      <HomeStack.Screen name="EventDetails" component={EventDetails} />
+    </HomeStack.Navigator>
+  );
+}
+
+function CreatePulseStackScreen() {
+  return (
+    <CreatePulseStack.Navigator screenOptions={{ headerShown: false }}>
+      <CreatePulseStack.Screen name="CreatePulse" component={CreatePulse} />
+      <CreatePulseStack.Screen
+        name="LocationEntry"
+        component={LocationEntryScreen}
+      />
+    </CreatePulseStack.Navigator>
   );
 }
 
@@ -51,10 +80,9 @@ export default function AppNavigator() {
     >
       <Tab.Screen
         name="Home"
-        component={HomeStack}
+        component={HomeStackScreen}
         listeners={({ navigation }) => ({
           tabPress: (e) => {
-            // Only emit the refresh event if the Home screen is already focused
             if (navigation.isFocused()) {
               eventBus.emit("refreshHome");
             }
@@ -63,7 +91,7 @@ export default function AppNavigator() {
       />
       <Tab.Screen
         name="CreatePulse"
-        component={CreatePulse}
+        component={CreatePulseStackScreen}
         options={{ headerShown: false }}
       />
       <Tab.Screen name="Profile" component={Profile} />
