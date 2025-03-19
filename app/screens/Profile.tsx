@@ -7,18 +7,21 @@ import {
   TouchableOpacity,
   Alert,
   View,
+  Image,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Slider from "@react-native-community/slider";
 import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
-import { updateUserProfile } from "../services/userService"; // Import updateUserProfile
+import { updateUserProfile } from "../services/userService";
+import { pickImage, uploadImageAsync } from "../utils/imageHelper";
 
 const categories = ["Music", "Tech", "Sports", "Art", "Food", "Networking"];
 
 export default function Profile() {
   const [maxDistance, setMaxDistance] = useState<number>(10);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +35,26 @@ export default function Profile() {
     })();
   }, []);
 
+  const handleUploadProfilePicture = async () => {
+    const uri = await pickImage();
+    if (!uri) return; // User canceled or permission not granted
+    try {
+      setLoading(true);
+      const user = auth.currentUser;
+      if (user) {
+        const downloadURL = await uploadImageAsync(uri, user.uid);
+        setPhotoURL(downloadURL);
+        // Update Firestore user profile with new photoURL
+        await updateUserProfile(user.uid, { photoURL: downloadURL });
+        Alert.alert("Success", "Profile picture uploaded successfully!");
+      }
+    } catch (error: any) {
+      Alert.alert("Upload Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const savePreferences = async () => {
     try {
       // Update local storage for immediate caching
@@ -41,12 +64,12 @@ export default function Profile() {
         JSON.stringify(selectedCategories)
       );
 
-      // Update Firestore user profile via userService
       const user = auth.currentUser;
       if (user) {
         await updateUserProfile(user.uid, {
           preferences: selectedCategories,
           maxDistance,
+          photoURL: photoURL || undefined, // update photoURL if changed
         });
       }
 
@@ -78,6 +101,36 @@ export default function Profile() {
   return (
     <SafeAreaView style={globalStyles.container}>
       <Text style={globalStyles.header}>👤 User Profile</Text>
+      <View style={{ alignItems: "center", marginVertical: 20 }}>
+        {photoURL ? (
+          <Image
+            source={{ uri: photoURL }}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              marginBottom: 10,
+            }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: "#ccc",
+              marginBottom: 10,
+            }}
+          />
+        )}
+        <TouchableOpacity
+          style={globalStyles.button}
+          onPress={handleUploadProfilePicture}
+        >
+          <Text style={globalStyles.buttonText}>Upload Profile Picture</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={{ marginVertical: 20, alignItems: "center" }}>
         <Text>Maximum Distance: {maxDistance} km</Text>
         <Slider
