@@ -13,8 +13,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Slider from "@react-native-community/slider";
 import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
-import { updateUserProfile, getUserProfile } from "../services/userService"; // Import getUserProfile as well
-import { pickImage, uploadImageAsync } from "../utils/imageHelper";
+import { updateUserProfile, getUserProfile } from "../services/userService";
+import { pickImage, uploadImage } from "../services/imageService";
 
 const categories = ["Music", "Tech", "Sports", "Art", "Food", "Networking"];
 
@@ -50,16 +50,25 @@ export default function Profile() {
     })();
   }, []);
 
+  // Updated function using imageService
   const handleUploadProfilePicture = async () => {
+    // Use pickImage from the imageService
     const uri = await pickImage();
     if (!uri) return; // User canceled or permission not granted
     try {
       setLoading(true);
       const user = auth.currentUser;
       if (user) {
-        const downloadURL = await uploadImageAsync(uri, user.uid);
+        // Generate a unique suffix using the user ID and current timestamp
+        const uniqueSuffix = `${user.uid}_${Date.now()}`;
+        // Upload the image to the "profilePictures" folder using the new imageService
+        const downloadURL = await uploadImage(
+          uri,
+          "profilePictures",
+          uniqueSuffix
+        );
         setPhotoURL(downloadURL);
-        // Update Firestore user profile with new photoURL
+        // Update Firestore user profile with the new photoURL
         await updateUserProfile(user.uid, { photoURL: downloadURL });
         Alert.alert("Success", "Profile picture uploaded successfully!");
       }

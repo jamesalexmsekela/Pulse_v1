@@ -14,7 +14,7 @@ import { globalStyles } from "../styles/globalStyles";
 import { auth } from "../utils/firebaseConfig";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { createUserProfile } from "../services/userService";
-import { pickImage, uploadImageAsync } from "../utils/imageHelper";
+import { pickImage, uploadImage } from "../services/imageService";
 
 type RootStackParamList = {
   Signup: undefined;
@@ -36,7 +36,7 @@ export default function Signup({ navigation }: SignupScreenProps) {
 
   const handleUploadProfilePicture = async () => {
     const uri = await pickImage();
-    if (!uri) return; // User cancelled or permission denied
+    if (!uri) return; // User canceled or permission denied
     setImageUri(uri);
     Alert.alert("Success", "Image selected successfully!");
   };
@@ -56,26 +56,31 @@ export default function Signup({ navigation }: SignupScreenProps) {
       );
       const user = userCredential.user;
       if (user) {
-        // Update the user's display name
+        // Update display name
         await updateProfile(user, { displayName: name });
         let finalPhotoURL = "";
-        // If the user picked an image, upload it using the user's UID
+        // If an image was selected, upload it now
         if (imageUri) {
-          finalPhotoURL = await uploadImageAsync(imageUri, user.uid);
+          // Generate a unique suffix using user UID and current timestamp
+          const uniqueSuffix = `${user.uid}_${Date.now()}`;
+          finalPhotoURL = await uploadImage(
+            imageUri,
+            "profilePictures",
+            uniqueSuffix
+          );
           setPhotoURL(finalPhotoURL);
         }
-        // Create the user profile in Firestore with the final photo URL
+        // Create the user profile in Firestore with the uploaded image URL
         await createUserProfile({
           id: user.uid,
           name,
           email,
-          photoURL: finalPhotoURL, // Use finalPhotoURL (empty string if none)
+          photoURL: finalPhotoURL, // will be empty string if no image
           preferences: [],
           maxDistance: 10, // default value
         });
       }
       Alert.alert("Success", "Account created successfully!");
-      // Navigation will be handled by auth state change
     } catch (error: any) {
       Alert.alert("Signup Error", error.message);
     } finally {

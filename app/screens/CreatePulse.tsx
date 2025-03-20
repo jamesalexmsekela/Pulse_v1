@@ -8,6 +8,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  Image,
   Platform,
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
@@ -17,6 +18,8 @@ import { EventContext } from "../context/EventContext";
 import GooglePlacesInput, {
   LocationType,
 } from "../components/GooglePlacesInput";
+import { pickImage, uploadImage } from "../services/imageService";
+import { auth } from "../utils/firebaseConfig";
 
 type RootStackParamList = {
   Home: undefined;
@@ -41,10 +44,51 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [maxAttendees, setMaxAttendees] = useState("");
   const [visibilityRadius, setVisibilityRadius] = useState("");
   const [location, setLocation] = useState<LocationType | null>(null);
+  const [eventImage, setEventImage] = useState<string>(""); // State for event image URL
   const [loading, setLoading] = useState(false);
 
-  const fixedImage = "https://via.placeholder.com/150";
+  // Define a default placeholder in case no image is provided
+  const placeholderImage = "https://via.placeholder.com/150";
 
+  // Handler to upload the event image using the new imageService
+  const handleUploadEventImage = async () => {
+    const uri = await pickImage();
+    if (!uri) return;
+    try {
+      setLoading(true);
+      const user = auth.currentUser;
+      if (user) {
+        // Generate a unique suffix: user UID plus current timestamp
+        const uniqueSuffix = `${user.uid}_${Date.now()}`;
+        // Upload the image to the "eventPictures" folder
+        const downloadURL = await uploadImage(
+          uri,
+          "eventPictures",
+          uniqueSuffix
+        );
+        setEventImage(downloadURL);
+        Alert.alert("Success", "Event image uploaded successfully!");
+      }
+    } catch (error: any) {
+      Alert.alert("Upload Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Function to clear the form inputs after event creation
+  const clearForm = () => {
+    setName("");
+    setCategory("");
+    setDate("");
+    setDescription("");
+    setMaxAttendees("");
+    setVisibilityRadius("");
+    setLocation(null);
+    setEventImage("");
+  };
+
+  // Handler for creating an event
   const handleCreateEvent = async () => {
     if (!name || !category || !date || !location) {
       Alert.alert(
@@ -59,19 +103,19 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         name,
         category,
         date,
-        image: fixedImage,
+        image: eventImage || placeholderImage,
         description,
         location: {
           latitude: location.latitude,
           longitude: location.longitude,
         },
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
-        // Conditionally add visibilityRadius only if a valid value is provided
         ...(visibilityRadius
           ? { visibilityRadius: parseFloat(visibilityRadius) }
           : {}),
       });
       Alert.alert("Success", "Event created successfully!");
+      clearForm();
       setLoading(false);
       navigation.navigate("Home");
     } catch (error: any) {
@@ -160,6 +204,24 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
               {location ? "Change Location" : "Input Location"}
             </Text>
           </TouchableOpacity>
+
+          {/* Button to upload the event image */}
+          <TouchableOpacity
+            style={[globalStyles.button, { marginVertical: 10 }]}
+            onPress={handleUploadEventImage}
+          >
+            <Text style={globalStyles.buttonText}>
+              {eventImage ? "Change Event Image" : "Upload Event Image"}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Preview the uploaded event image */}
+          {eventImage && (
+            <Image
+              source={{ uri: eventImage }}
+              style={globalStyles.eventImage}
+            />
+          )}
 
           {loading ? (
             <ActivityIndicator size="large" color="purple" />

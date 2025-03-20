@@ -48,16 +48,19 @@ export default function EventDetails({
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userHasRSVPed, setUserHasRSVPed] = useState<boolean>(false);
   const [attendeeProfiles, setAttendeeProfiles] = useState<UserProfile[]>([]);
+  const [organizer, setOrganizer] = useState<UserProfile | null>(null);
 
   const [currentEvent, setCurrentEvent] = useState<Event | undefined>(() =>
     events.find((e) => e.id === eventId)
   );
 
+  // Fetch current user ID
   useEffect(() => {
     const user = auth.currentUser;
     setCurrentUserId(user ? user.uid : null);
   }, []);
 
+  // Fetch RSVP status for the current user
   useEffect(() => {
     const fetchRSVPStatus = async () => {
       if (!currentUserId) return;
@@ -68,11 +71,13 @@ export default function EventDetails({
     fetchRSVPStatus();
   }, [eventId, currentUserId]);
 
+  // Update current event whenever global events change
   useEffect(() => {
     const updatedEvent = events.find((e) => e.id === eventId);
     setCurrentEvent(updatedEvent);
   }, [events, eventId]);
 
+  // Fetch attendee profiles
   useEffect(() => {
     const fetchAttendees = async () => {
       if (!currentEvent?.attendees) return;
@@ -80,16 +85,14 @@ export default function EventDetails({
         currentEvent.attendees.map(async (userId) => {
           const docSnap = await getDoc(doc(db, "users", userId));
           if (docSnap.exists()) {
-            // Destructure out the id from the Firestore document (if present)
             const data = docSnap.data() as UserProfile;
-            const { id, ...userData } = data;
+            const { id: _removed, ...userData } = data;
             return { id: userId, ...userData };
           } else {
             return null;
           }
         })
       );
-      // Filter out any nulls using a type guard
       const nonNullProfiles: UserProfile[] = profiles.filter(
         (p): p is UserProfile => p !== null
       );
@@ -97,6 +100,27 @@ export default function EventDetails({
     };
     fetchAttendees();
   }, [currentEvent?.attendees]);
+
+  // Fetch organizer profile based on creatorId
+  useEffect(() => {
+    const fetchOrganizer = async () => {
+      if (!currentEvent?.creatorId) return;
+      const organizerDoc = await getDoc(
+        doc(db, "users", currentEvent.creatorId)
+      );
+      if (organizerDoc.exists()) {
+        const data = organizerDoc.data() as UserProfile;
+        // Destructure and discard the conflicting id if present
+        const { id: _removed, ...userData } = data;
+        console.log("Organizer data fetched:", {
+          id: currentEvent.creatorId,
+          ...userData,
+        });
+        setOrganizer({ id: currentEvent.creatorId, ...userData });
+      }
+    };
+    fetchOrganizer();
+  }, [currentEvent?.creatorId]);
 
   if (!currentEvent) {
     return (
@@ -139,10 +163,16 @@ export default function EventDetails({
     <SafeAreaView style={globalStyles.container}>
       <ScrollView>
         <Text style={globalStyles.header}>{currentEvent.name}</Text>
-        <Image
-          source={{ uri: currentEvent.image }}
-          style={globalStyles.eventImage}
-        />
+        {currentEvent.image ? (
+          <Image
+            source={{ uri: currentEvent.image }}
+            style={globalStyles.eventImage}
+          />
+        ) : (
+          <View style={globalStyles.eventImagePlaceholder}>
+            <Text>No Image Available</Text>
+          </View>
+        )}
         <Text style={globalStyles.eventDate}>{currentEvent.date}</Text>
         <Text style={{ margin: 10 }}>
           {currentEvent.description || "No description provided."}
@@ -187,7 +217,25 @@ export default function EventDetails({
           </TouchableOpacity>
         )}
 
-        {/* Replace inline attendee list with a button */}
+        {organizer && (
+          <View style={{ marginTop: 20, alignItems: "center" }}>
+            <Text style={globalStyles.header}>Organized by</Text>
+            {organizer.photoURL &&
+            organizer.photoURL !== "" &&
+            organizer.photoURL !== currentEvent.image ? (
+              <Image
+                source={{ uri: organizer.photoURL }}
+                style={globalStyles.profileImage}
+              />
+            ) : (
+              <View style={globalStyles.profileImageContainer}>
+                <Text style={{ color: "#fff" }}>No Image</Text>
+              </View>
+            )}
+            <Text>{organizer.name}</Text>
+          </View>
+        )}
+
         {currentEvent.attendees && currentEvent.attendees.length > 0 && (
           <TouchableOpacity
             style={[globalStyles.button, { marginTop: 20 }]}

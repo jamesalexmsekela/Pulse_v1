@@ -85,7 +85,6 @@ export const globalStyles = StyleSheet.create({
   categorySelected: {
     backgroundColor: styles.colors.primary,
   },
-  // New style definitions for profile picture
   profileImageContainer: {
     width: 100,
     height: 100,
@@ -100,6 +99,14 @@ export const globalStyles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     marginVertical: styles.spacing.small,
+  },
+  eventImagePlaceholder: {
+    width: "100%",
+    height: 150,
+    borderRadius: 10,
+    backgroundColor: "#ccc",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 
