@@ -12,9 +12,9 @@ import {
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
-import { db } from "../utils/firebaseConfig";
-import { doc, getDoc, getDocs, collection } from "firebase/firestore";
 import { UserProfile } from "../models/User";
+import { getUserProfiles } from "../services/userService";
+import { getAttendeeIdsForEvent } from "../services/eventService";
 
 type RootStackParamList = {
   Attendees: { eventId: string };
@@ -35,26 +35,10 @@ const AttendeesScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAttendees = async () => {
+    const fetchAttendeeProfiles = async () => {
       try {
-        const eventRef = doc(db, "events", eventId);
-        const eventSnap = await getDoc(eventRef);
-        if (!eventSnap.exists()) {
-          throw new Error("Event not found");
-        }
-        const eventData = eventSnap.data();
-        console.log("Event data fetched:", eventData); // Debug log here
-        const attendeeIds: string[] = eventData.attendees || [];
-        console.log("Attendee IDs:", attendeeIds); // Check if IDs are present
-
-        const profiles: UserProfile[] = [];
-        for (const userId of attendeeIds) {
-          const userDocSnap = await getDoc(doc(db, "users", userId));
-          if (userDocSnap.exists()) {
-            profiles.push({ id: userId, ...userDocSnap.data() } as UserProfile);
-          }
-        }
-        console.log("Fetched attendee profiles:", profiles);
+        const attendeeIds = await getAttendeeIdsForEvent(eventId);
+        const profiles = await getUserProfiles(attendeeIds);
         setAttendees(profiles);
       } catch (error) {
         console.error("Error fetching attendee profiles:", error);
@@ -63,7 +47,7 @@ const AttendeesScreen: React.FC = () => {
       }
     };
 
-    fetchAttendees();
+    fetchAttendeeProfiles();
   }, [eventId]);
 
   if (loading) {

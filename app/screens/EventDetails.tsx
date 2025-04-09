@@ -14,8 +14,12 @@ import { StackNavigationProp } from "@react-navigation/stack";
 import { globalStyles } from "../styles/globalStyles";
 import { EventContext } from "../context/EventContext";
 import { Event } from "../models/Event";
-import { db, auth } from "../utils/firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { auth } from "../utils/firebaseConfig";
+import {
+  getAttendeeIdsForEvent,
+  hasUserRSVPed,
+} from "../services/eventService";
+import { getUserProfiles, getUserProfile } from "../services/userService";
 
 interface UserProfile {
   id: string;
@@ -64,9 +68,8 @@ export default function EventDetails({
   useEffect(() => {
     const fetchRSVPStatus = async () => {
       if (!currentUserId) return;
-      const rsvpRef = doc(db, "events", eventId, "rsvps", currentUserId);
-      const rsvpSnap = await getDoc(rsvpRef);
-      setUserHasRSVPed(rsvpSnap.exists());
+      const hasRSVPed = await hasUserRSVPed(eventId, currentUserId);
+      setUserHasRSVPed(hasRSVPed);
     };
     fetchRSVPStatus();
   }, [eventId, currentUserId]);
@@ -80,43 +83,25 @@ export default function EventDetails({
   // Fetch attendee profiles
   useEffect(() => {
     const fetchAttendees = async () => {
-      if (!currentEvent?.attendees) return;
-      const profiles: (UserProfile | null)[] = await Promise.all(
-        currentEvent.attendees.map(async (userId) => {
-          const docSnap = await getDoc(doc(db, "users", userId));
-          if (docSnap.exists()) {
-            const data = docSnap.data() as UserProfile;
-            const { id: _removed, ...userData } = data;
-            return { id: userId, ...userData };
-          } else {
-            return null;
-          }
-        })
-      );
-      const nonNullProfiles: UserProfile[] = profiles.filter(
-        (p): p is UserProfile => p !== null
-      );
-      setAttendeeProfiles(nonNullProfiles);
+      try {
+        const attendeeIds = await getAttendeeIdsForEvent(eventId);
+        const profiles = await getUserProfiles(attendeeIds);
+        setAttendeeProfiles(profiles);
+      } catch (error) {
+        console.error("Error fetching attendees:", error);
+      }
     };
     fetchAttendees();
-  }, [currentEvent?.attendees]);
+  }, [eventId]);
 
   // Fetch organizer profile based on creatorId
   useEffect(() => {
     const fetchOrganizer = async () => {
       if (!currentEvent?.creatorId) return;
-      const organizerDoc = await getDoc(
-        doc(db, "users", currentEvent.creatorId)
-      );
-      if (organizerDoc.exists()) {
-        const data = organizerDoc.data() as UserProfile;
-        // Destructure and discard the conflicting id if present
-        const { id: _removed, ...userData } = data;
-        console.log("Organizer data fetched:", {
-          id: currentEvent.creatorId,
-          ...userData,
-        });
-        setOrganizer({ id: currentEvent.creatorId, ...userData });
+      const organizerData = await getUserProfile(currentEvent.creatorId);
+      if (organizerData) {
+        const { id: _removed, ...restOrganizerData } = organizerData;
+        setOrganizer({ id: currentEvent.creatorId, ...restOrganizerData });
       }
     };
     fetchOrganizer();
@@ -174,6 +159,11 @@ export default function EventDetails({
           </View>
         )}
         <Text style={globalStyles.eventDate}>{currentEvent.date}</Text>
+        <Text style={{ margin: 10 }}>Start Time: {currentEvent.startTime}</Text>
+        <Text style={{ margin: 10 }}>End Time: {currentEvent.endTime}</Text>
+        <Text style={{ margin: 10 }}>
+          Location: {currentEvent.location.address || "Address not available"}
+        </Text>
         <Text style={{ margin: 10 }}>
           {currentEvent.description || "No description provided."}
         </Text>

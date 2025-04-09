@@ -25,3 +25,25 @@ export const updateUserProfile = async (userId: string, updates: Partial<UserPro
 export const deleteUserProfile = async (userId: string) => {
   await deleteDoc(doc(db, "users", userId));
 };
+
+/**
+ * Retrieves an array of user profiles for given user IDs.
+ * @param userIds - An array of user IDs.
+ * @returns A promise that resolves with an array of UserProfile objects.
+ */
+export const getUserProfiles = async (userIds: string[]): Promise<UserProfile[]> => {
+  const profiles = await Promise.all(
+    userIds.map(async (userId) => {
+      const docSnap = await getDoc(doc(db, "users", userId));
+      if (docSnap.exists()) {
+        // Get the data and override the id with the userId from the loop.
+        const data = docSnap.data() as UserProfile;
+        const { id, ...rest } = data;
+        return { id: userId, ...rest };
+      }
+      return null;
+    })
+  );
+  // Filter out any null values with a type guard.
+  return profiles.filter((p): p is UserProfile => p !== null);
+};

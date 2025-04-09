@@ -40,17 +40,19 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [date, setDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
   const [maxAttendees, setMaxAttendees] = useState("");
   const [visibilityRadius, setVisibilityRadius] = useState("");
   const [location, setLocation] = useState<LocationType | null>(null);
-  const [eventImage, setEventImage] = useState<string>(""); // State for event image URL
+  const [eventImage, setEventImage] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
-  // Define a default placeholder in case no image is provided
+  // Default placeholder in case no image is provided
   const placeholderImage = "https://via.placeholder.com/150";
 
-  // Handler to upload the event image using the new imageService
+  // Handler to upload the event image using the imageService
   const handleUploadEventImage = async () => {
     const uri = await pickImage();
     if (!uri) return;
@@ -58,7 +60,7 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
       setLoading(true);
       const user = auth.currentUser;
       if (user) {
-        // Generate a unique suffix: user UID plus current timestamp
+        // Generate a unique suffix using the user's UID and current timestamp
         const uniqueSuffix = `${user.uid}_${Date.now()}`;
         // Upload the image to the "eventPictures" folder
         const downloadURL = await uploadImage(
@@ -76,11 +78,13 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
     }
   };
 
-  // Function to clear the form inputs after event creation
+  // Function to clear all form inputs after event creation
   const clearForm = () => {
     setName("");
     setCategory("");
     setDate("");
+    setStartTime(""); // Clear start time
+    setEndTime(""); // Clear end time
     setDescription("");
     setMaxAttendees("");
     setVisibilityRadius("");
@@ -88,12 +92,12 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
     setEventImage("");
   };
 
-  // Handler for creating an event
+  // Handler for creating an event with start and end times
   const handleCreateEvent = async () => {
-    if (!name || !category || !date || !location) {
+    if (!name || !category || !date || !location || !startTime || !endTime) {
       Alert.alert(
         "Error",
-        "Please fill in all required fields (Name, Category, Date, Address)."
+        "Please fill in all required fields (Name, Category, Date, Start Time, End Time, Address)."
       );
       return;
     }
@@ -103,11 +107,14 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
         name,
         category,
         date,
+        startTime,
+        endTime,
         image: eventImage || placeholderImage,
         description,
         location: {
           latitude: location.latitude,
           longitude: location.longitude,
+          address: location.address || "Address not available",
         },
         maxAttendees: maxAttendees ? parseInt(maxAttendees) : undefined,
         ...(visibilityRadius
@@ -159,6 +166,20 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
             onChangeText={setDate}
           />
           <TextInput
+            style={globalStyles.input}
+            placeholder="Start Time (e.g., 18:00)"
+            placeholderTextColor="gray"
+            value={startTime}
+            onChangeText={setStartTime}
+          />
+          <TextInput
+            style={globalStyles.input}
+            placeholder="End Time (e.g., 21:00)"
+            placeholderTextColor="gray"
+            value={endTime}
+            onChangeText={setEndTime}
+          />
+          <TextInput
             style={[globalStyles.input, { height: 80 }]}
             placeholder="Description"
             placeholderTextColor="gray"
@@ -205,7 +226,6 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
             </Text>
           </TouchableOpacity>
 
-          {/* Button to upload the event image */}
           <TouchableOpacity
             style={[globalStyles.button, { marginVertical: 10 }]}
             onPress={handleUploadEventImage}
@@ -215,7 +235,7 @@ export default function CreatePulse({ navigation }: CreatePulseProps) {
             </Text>
           </TouchableOpacity>
 
-          {/* Preview the uploaded event image */}
+          {/* Event image preview */}
           {eventImage && (
             <Image
               source={{ uri: eventImage }}
