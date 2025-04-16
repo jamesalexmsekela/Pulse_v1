@@ -11,6 +11,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { registerForPushNotificationsAsync } from "./app/utils/notifications";
 import NotificationHandler from "./app/components/NotificationHandler";
 import { onAuthStateChanged } from "firebase/auth";
+import { updateUserProfile } from "./app/services/userService";
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -25,11 +26,20 @@ export default function App() {
     return unsubscribe;
   }, []);
 
+  // Sync push token with Firestore when user logs in
+  // This is a side effect that should be run after the user state is set
+  // and the app is ready to handle notifications
   useEffect(() => {
-    registerForPushNotificationsAsync().then((token) => {
-      console.log("Push token:", token);
-    });
-  }, []);
+    const syncPushToken = async () => {
+      if (!user) return;
+      const token = await registerForPushNotificationsAsync();
+      if (token) {
+        await updateUserProfile(user.uid, { pushToken: token });
+        console.log("✅ Push token synced to Firestore:", token);
+      }
+    };
+    syncPushToken();
+  }, [user]);
 
   return (
     <NavigationContainer>

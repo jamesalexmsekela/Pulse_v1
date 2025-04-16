@@ -13,6 +13,7 @@ import { auth } from "../utils/firebaseConfig";
 import { arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "../utils/firebaseConfig";
 import { Event } from "../models/Event";
+import { query, where, getDocs } from "firebase/firestore";
 
 /**
  * Listen for real-time updates on events.
@@ -25,6 +26,18 @@ export const getEvents = (callback: (events: Event[]) => void) => {
     })) as Event[];
     callback(eventsData);
   });
+};
+
+/**
+ * Fetch all events from Firestore
+ */
+export const getEventsByCreator = async (creatorId: string): Promise<Event[]> => {
+  const q = query(collection(db, "events"), where("creatorId", "==", creatorId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as Event[];
 };
 
 /**

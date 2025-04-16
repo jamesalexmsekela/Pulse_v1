@@ -19,6 +19,7 @@ import { EventContext } from "../context/EventContext";
 import { Event } from "../models/Event";
 import { eventBus } from "../utils/EventBus";
 import { getDistanceFromLatLonInKm } from "../utils/distance";
+import { auth } from "../utils/firebaseConfig";
 
 type RootStackParamList = {
   Home: undefined;
@@ -88,8 +89,14 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
 
   // Filter events based on location, categories, and maxDistance
   const filterEvents = useCallback(() => {
-    if (!userLocation) return;
+    if (!userLocation || !auth.currentUser) return;
+
+    const currentUserId = auth.currentUser.uid;
+
     const nearbyEvents = contextEvents.filter((event) => {
+      // ❌ Skip events created by the current user
+      if (event.creatorId === currentUserId) return false;
+
       const distance = getDistanceFromLatLonInKm(
         userLocation.latitude,
         userLocation.longitude,
@@ -100,7 +107,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       const userWithinRadius = distance <= maxDistance;
       const eventAllowsVisibility = event.visibilityRadius
         ? distance <= event.visibilityRadius
-        : true; // if not set, event is visible to all users within their own radius
+        : true;
 
       return (
         userWithinRadius &&
@@ -109,7 +116,7 @@ export default function HomeScreen({ navigation }: HomeScreenProps) {
       );
     });
 
-    console.log("Filtered Events:", nearbyEvents);
+    console.log("Filtered Events (excluding my own):", nearbyEvents);
     setFilteredEvents(nearbyEvents);
   }, [contextEvents, userLocation, userCategories, maxDistance]);
 

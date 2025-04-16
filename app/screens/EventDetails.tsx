@@ -33,6 +33,7 @@ type RootStackParamList = {
   EventDetails: { eventId: string };
   Profile: undefined;
   Attendees: { eventId: string };
+  EditEvent: { eventId: string };
 };
 
 type EventDetailsRouteProp = RouteProp<RootStackParamList, "EventDetails">;
@@ -196,15 +197,29 @@ export default function EventDetails({
         </TouchableOpacity>
 
         {currentEvent.creatorId === currentUserId && (
-          <TouchableOpacity
-            style={[
-              globalStyles.button,
-              { backgroundColor: "red", marginTop: 10 },
-            ]}
-            onPress={handleDeleteEvent}
-          >
-            <Text style={globalStyles.buttonText}>Delete Event</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[
+                globalStyles.button,
+                { backgroundColor: "orange", marginTop: 10, marginBottom: 5 },
+              ]}
+              onPress={() =>
+                navigation.navigate("EditEvent", { eventId: currentEvent.id })
+              }
+            >
+              <Text style={globalStyles.buttonText}>Edit Event</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                globalStyles.button,
+                { backgroundColor: "red", marginBottom: 10 },
+              ]}
+              onPress={handleDeleteEvent}
+            >
+              <Text style={globalStyles.buttonText}>Delete Event</Text>
+            </TouchableOpacity>
+          </>
         )}
 
         {organizer && (
